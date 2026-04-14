@@ -1,1251 +1,823 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SVA Scholarship — Admin Portal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-    :root {
-        --clr-forest: #1a3c34;
-        --clr-sage: #4a7c6f;
-        --clr-gold: #c9a84c;
-        --clr-gold-light: #f5ecd0;
-        --clr-cream: #faf8f3;
-        --clr-warm: #f0ebe1;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVA Scholarship — Admin Portal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --clr-forest:#0f2e28;
+    --clr-forest-2:#17453c;
+    --clr-sage:#3d6b5e;
+    --clr-gold:#b8944a;
+    --clr-gold-bright:#d4b45a;
+    --clr-gold-light:#f5ecd0;
+    --clr-ivory:#fbf9f3;
+    --clr-paper:#ffffff;
+    --clr-warm:#f0ebe1;
+    --clr-border:#e8e3d5;
+    --clr-border-soft:#f0ece0;
+    --clr-ink:#1c1917;
+    --clr-ink-soft:#57534e;
+    --clr-ink-muted:#a8a29e;
+  }
+  *,*::before,*::after { box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background:var(--clr-ivory); color:var(--clr-ink); -webkit-font-smoothing:antialiased; font-feature-settings:"cv11","ss01"; }
+  h1,h2,h3,h4 { font-family:'Fraunces',serif; letter-spacing:-.01em; font-weight:500; }
+  .serif { font-family:'Fraunces',serif; letter-spacing:-.01em; }
 
-    body {
-        font-family: 'DM Sans', sans-serif;
-        background: var(--clr-cream);
-        color: #2d3436;
-    }
+  /* Buttons */
+  .btn-primary { background:var(--clr-forest); color:#fff; padding:.6rem 1.1rem; border-radius:.5rem; font-weight:500; font-size:.875rem; transition:all .2s; letter-spacing:-.005em; }
+  .btn-primary:hover { background:var(--clr-forest-2); box-shadow:0 1px 2px rgba(15,46,40,.1),0 4px 12px rgba(15,46,40,.12); }
+  .btn-primary:disabled { opacity:.5; cursor:not-allowed; box-shadow:none; }
+  .btn-gold { background:var(--clr-gold); color:#fff; padding:.55rem 1.1rem; border-radius:.5rem; font-weight:500; font-size:.85rem; transition:all .2s; }
+  .btn-gold:hover { background:#a78238; }
+  .btn-ghost { background:var(--clr-paper); border:1px solid var(--clr-border); padding:.5rem .95rem; border-radius:.5rem; font-weight:500; font-size:.85rem; color:var(--clr-ink); transition:all .2s; }
+  .btn-ghost:hover { border-color:var(--clr-forest); background:var(--clr-ivory); }
+  .btn-icon { width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; border-radius:.5rem; border:1px solid var(--clr-border); background:var(--clr-paper); transition:all .2s; }
+  .btn-icon:hover { border-color:var(--clr-forest); background:var(--clr-ivory); }
 
-    h1, h2, h3, h4 {
-        font-family: 'Lora', serif;
-    }
+  /* Cards & surfaces */
+  .card { background:var(--clr-paper); border:1px solid var(--clr-border); border-radius:.75rem; }
+  .surface { background:var(--clr-paper); border:1px solid var(--clr-border-soft); }
 
-    .btn-primary {
-        background: linear-gradient(135deg, var(--clr-forest), var(--clr-sage));
-        color: #fff;
-        padding: .6rem 1.25rem;
-        border-radius: .5rem;
-        font-weight: 600;
-        transition: all .25s;
-    }
+  /* Inputs */
+  .form-input { width:100%; padding:.55rem .8rem; border-radius:.5rem; border:1px solid var(--clr-border); background:var(--clr-paper); font-size:.875rem; font-family:inherit; color:var(--clr-ink); transition:all .15s; }
+  .form-input:focus { outline:none; border-color:var(--clr-forest); box-shadow:0 0 0 3px rgba(15,46,40,.08); }
+  .form-input::placeholder { color:var(--clr-ink-muted); }
 
-    .btn-primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(26, 60, 52, .25);
-    }
+  /* Chips */
+  .chip { display:inline-flex; align-items:center; gap:4px; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:500; letter-spacing:.01em; }
+  .chip-dot { width:6px; height:6px; border-radius:50%; display:inline-block; }
+  .chip-sent      { background:#fef6dd; color:#8a6a15; }
+  .chip-done      { background:#e0f2ea; color:#1a5c46; }
+  .chip-pending   { background:#f5f5f4; color:#78716c; }
+  .chip-nominated { background:#f8f6ef; color:#78653f; border:1px dashed #c9b88a; }
+  .chip-warn      { background:#fef2f2; color:#991b1b; }
+  .track-budding  { background:#fdf2e9; color:#854d0e; }
+  .track-junior   { background:#eef4ff; color:#1e40af; }
+  .track-future   { background:#ecfdf5; color:#065f46; }
 
-    .btn-primary:disabled {
-        opacity: .5;
-        cursor: not-allowed;
-    }
+  /* Stat cards */
+  .stat-card { position:relative; background:var(--clr-paper); border:1px solid var(--clr-border); border-radius:.75rem; padding:1.25rem; transition:all .2s; }
+  .stat-card:hover { border-color:var(--clr-gold); box-shadow:0 1px 3px rgba(0,0,0,.04); }
 
-    .btn-gold {
-        background: linear-gradient(135deg, var(--clr-gold), #d4b45a);
-        color: var(--clr-forest);
-        padding: .6rem 1.25rem;
-        border-radius: .5rem;
-        font-weight: 700;
-    }
+  /* Recommender row */
+  .rec-row { display:flex; align-items:center; justify-content:space-between; padding:.85rem 1rem; border-radius:.65rem; background:var(--clr-paper); border:1px solid var(--clr-border-soft); margin-bottom:.5rem; transition:all .15s; }
+  .rec-row:hover { border-color:var(--clr-border); background:var(--clr-ivory); }
+  .rec-row.nominated { background:#fdfbf4; border-style:dashed; border-color:#c9b88a; }
 
-    .btn-ghost {
-        background: #fff;
-        border: 1.5px solid #e5e0d0;
-        padding: .55rem 1rem;
-        border-radius: .5rem;
-        font-weight: 500;
-    }
+  /* Avatar */
+  .avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--clr-forest),var(--clr-sage)); color:#d4b45a; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:12px; flex-shrink:0; font-family:'Fraunces',serif; letter-spacing:.02em; }
+  .avatar-sm { width:28px; height:28px; font-size:10px; }
 
-    .btn-ghost:hover {
-        border-color: var(--clr-gold);
-    }
+  /* Labels */
+  .section-label { font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--clr-ink-muted); }
+  .eyebrow { font-size:11px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--clr-gold); }
 
-    .card {
-        background: #fff;
-        border: 1px solid #e8e3d8;
-        border-radius: .85rem;
-    }
+  /* Score input */
+  .score-input { text-align:center; font-weight:600; font-size:1.15rem; font-family:'Fraunces',serif; }
 
-    .form-input {
-        width: 100%;
-        padding: .55rem .8rem;
-        border-radius: .5rem;
-        border: 1.5px solid #d4cfc4;
-        background: #fff;
-    }
+  /* Table */
+  table.refined { width:100%; border-collapse:separate; border-spacing:0; }
+  table.refined thead th { background:var(--clr-ivory); font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--clr-ink-soft); padding:.65rem 1rem; text-align:left; border-bottom:1px solid var(--clr-border); position:sticky; top:0; z-index:1; }
+  table.refined thead th.sortable { cursor:pointer; user-select:none; }
+  table.refined thead th.sortable:hover { color:var(--clr-forest); }
+  table.refined tbody tr { transition:background .15s; cursor:pointer; border-bottom:1px solid var(--clr-border-soft); }
+  table.refined tbody tr:hover { background:var(--clr-ivory); }
+  table.refined tbody tr.selected { background:#fdfbf4; border-left:3px solid var(--clr-gold); }
+  table.refined tbody td { padding:.85rem 1rem; font-size:.88rem; vertical-align:middle; }
 
-    .form-input:focus {
-        outline: none;
-        border-color: var(--clr-gold);
-        box-shadow: 0 0 0 3px rgba(201, 168, 76, .15);
-    }
+  /* Slide-over panel */
+  .panel-backdrop { position:fixed; inset:0; background:rgba(15,23,42,.25); backdrop-filter:blur(4px); z-index:40; opacity:0; pointer-events:none; transition:opacity .25s; }
+  .panel-backdrop.open { opacity:1; pointer-events:auto; }
+  .slide-panel { position:fixed; top:0; right:0; bottom:0; width:100%; max-width:780px; background:var(--clr-ivory); z-index:50; transform:translateX(100%); transition:transform .28s cubic-bezier(.25,.8,.25,1); overflow-y:auto; box-shadow:-20px 0 60px rgba(15,23,42,.08); }
+  .slide-panel.open { transform:translateX(0); }
 
-    .chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 3px 10px;
-        border-radius: 999px;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: .02em;
-    }
+  /* Tabs */
+  .tab { padding:.75rem 0; margin-right:1.5rem; cursor:pointer; border-bottom:2px solid transparent; font-weight:500; font-size:.88rem; color:var(--clr-ink-soft); transition:all .2s; }
+  .tab.active { border-color:var(--clr-forest); color:var(--clr-forest); }
+  .tab:hover { color:var(--clr-forest); }
 
-    .chip-sent {
-        background: #fef6dd;
-        color: #8a6a15;
-    }
+  /* Progress bar */
+  .progress-track { height:4px; background:var(--clr-warm); border-radius:999px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--clr-gold),var(--clr-gold-bright)); transition:width .3s; }
 
-    .chip-done {
-        background: #e0f2ea;
-        color: #1a5c46;
-    }
+  /* Filter pills */
+  .pill { padding:.4rem .9rem; border-radius:999px; font-size:.8rem; font-weight:500; background:var(--clr-paper); border:1px solid var(--clr-border); color:var(--clr-ink-soft); cursor:pointer; transition:all .15s; }
+  .pill:hover { border-color:var(--clr-forest); color:var(--clr-forest); }
+  .pill.active { background:var(--clr-forest); color:#fff; border-color:var(--clr-forest); }
 
-    .chip-pending {
-        background: #f1efe8;
-        color: #6b6b6b;
-    }
+  /* Utilities */
+  .divider { height:1px; background:var(--clr-border-soft); }
+  .hover-lift:hover { transform:translateY(-1px); }
+  .num { font-variant-numeric:tabular-nums; }
+  .kbd { display:inline-block; padding:1px 6px; font-family:'Inter',monospace; font-size:11px; border:1px solid var(--clr-border); border-bottom-width:2px; border-radius:4px; background:var(--clr-paper); color:var(--clr-ink-soft); }
 
-    .chip-nominated {
-        background: #eef2f7;
-        color: #334155;
-        border: 1px dashed #94a3b8;
-    }
+  /* Toast */
+  .toast { position:fixed; bottom:1.5rem; right:1.5rem; z-index:100; padding:.85rem 1.25rem; background:var(--clr-forest); color:#fff; border-radius:.65rem; box-shadow:0 10px 30px rgba(0,0,0,.2); font-size:.875rem; transform:translateY(20px); opacity:0; transition:all .25s; }
+  .toast.show { transform:translateY(0); opacity:1; }
+  .toast.error { background:#991b1b; }
 
-    .chip-warn {
-        background: #fef2f2;
-        color: #991b1b;
-    }
-
-    .track-budding {
-        background: #fdf2e9;
-        color: #8a4c15;
-    }
-
-    .track-junior {
-        background: #e6f0ff;
-        color: #1e3a8a;
-    }
-
-    .track-future {
-        background: #ecfdf5;
-        color: #065f46;
-    }
-
-    .stat-card {
-        position: relative;
-        overflow: hidden;
-    }
-
-    .stat-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, var(--clr-gold), var(--clr-sage));
-    }
-
-    .rec-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: .75rem 1rem;
-        border-radius: .65rem;
-        background: #fafaf6;
-        border: 1px solid #ece7d8;
-        margin-bottom: .5rem;
-    }
-
-    .rec-row.nominated {
-        background: #fffdf4;
-        border-style: dashed;
-        border-color: var(--clr-gold);
-    }
-
-    .rec-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--clr-forest), var(--clr-sage));
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 13px;
-        flex-shrink: 0;
-    }
-
-    .section-label {
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        color: #6b6b6b;
-    }
-
-    .score-input {
-        text-align: center;
-        font-weight: 600;
-        font-size: 1.1rem;
-    }
-
-    .modal-bg {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, .45);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 50;
-        padding: 1rem;
-    }
-
-    .modal {
-        background: #fff;
-        border-radius: 1rem;
-        max-width: 720px;
-        width: 100%;
-        max-height: 90vh;
-        overflow-y: auto;
-    }
-
-    .tab {
-        padding: .5rem 1rem;
-        cursor: pointer;
-        border-bottom: 2px solid transparent;
-        font-weight: 500;
-        color: #6b6b6b;
-    }
-
-    .tab.active {
-        border-color: var(--clr-gold);
-        color: var(--clr-forest);
-    }
-    </style>
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:#e5e0d0; border-radius:10px; border:2px solid transparent; background-clip:content-box; }
+  ::-webkit-scrollbar-thumb:hover { background:#d4cfc0; background-clip:content-box; border:2px solid transparent; }
+</style>
 </head>
 <body class="min-h-screen">
 
-    <!-- ────────── LOGIN ────────── -->
-    <section id="loginView" class="min-h-screen flex items-center justify-center p-4" style="background:radial-gradient(circle at top right, #f5ecd0 0%, var(--clr-cream) 60%);">
-        <div class="card max-w-md w-full p-10 text-center relative overflow-hidden" style="box-shadow:0 20px 60px rgba(26,60,52,.08);">
-            <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--clr-gold),var(--clr-sage),var(--clr-forest));"></div>
-            <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full text-[11px] font-bold mb-5 tracking-widest" style="background:var(--clr-gold-light);color:var(--clr-forest);">
-                <span style="width:6px;height:6px;border-radius:50%;background:var(--clr-gold);display:inline-block;"></span>
-                ADMIN ACCESS
-                    
-            </div>
-            <h1 class="text-3xl mb-1" style="color:var(--clr-forest);letter-spacing:-.01em;">SVA Scholarship</h1>
-            <p class="text-sm mb-8" style="color:var(--clr-sage);font-weight:500;">Committee Review & Evaluation Portal</p>
-            <div id="googleBtn" class="flex justify-center"></div>
-            <p id="loginError" class="text-red-600 text-sm mt-4 hidden"></p>
-            <p class="text-[11px] text-gray-400 mt-8 pt-6 border-t border-gray-100">Authorized admin accounts only. Unauthorized access is prohibited.</p>
+<!-- ────────── LOGIN ────────── -->
+<section id="loginView" class="min-h-screen grid md:grid-cols-2">
+  <!-- Left: brand panel -->
+  <div class="hidden md:flex flex-col justify-between p-12 text-white relative overflow-hidden" style="background:linear-gradient(135deg,var(--clr-forest) 0%,var(--clr-forest-2) 60%,var(--clr-sage) 100%);">
+    <div style="position:absolute;top:-80px;right:-80px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(212,180,90,.15),transparent);"></div>
+    <div style="position:absolute;bottom:-100px;left:-100px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(212,180,90,.08),transparent);"></div>
+    <div class="relative z-10">
+      <div class="flex items-center gap-3 mb-2">
+        <div style="width:44px;height:44px;border-radius:10px;background:var(--clr-gold);display:flex;align-items:center;justify-content:center;color:var(--clr-forest);font-family:'Fraunces',serif;font-weight:700;font-size:18px;">SVA</div>
+        <div class="font-medium tracking-wide">SVA School</div>
+      </div>
+    </div>
+    <div class="relative z-10">
+      <p class="eyebrow mb-4" style="color:var(--clr-gold-bright);">Scholarship Program</p>
+      <h1 class="text-5xl leading-tight mb-4" style="color:#fff;">Shaping the<br>next generation<br>of leaders.</h1>
+      <p class="text-white/70 text-base max-w-sm leading-relaxed">A dedicated workspace for the Scholarship Committee to review applications, coordinate recommendations, and evaluate candidates with care.</p>
+    </div>
+    <div class="relative z-10 text-xs text-white/50">© SVA Scholarship Committee · Confidential</div>
+  </div>
+  <!-- Right: sign-in -->
+  <div class="flex items-center justify-center p-8 md:p-16 bg-[var(--clr-ivory)]">
+    <div class="w-full max-w-sm">
+      <p class="eyebrow mb-3">Admin Access</p>
+      <h2 class="text-3xl mb-2" style="color:var(--clr-forest);">Welcome back.</h2>
+      <p class="text-[var(--clr-ink-soft)] mb-8 leading-relaxed">Sign in with your authorized Google account to review this year's applications.</p>
+      <div id="googleBtn" class="mb-4"></div>
+      <p id="loginError" class="text-red-600 text-sm hidden"></p>
+      <div class="mt-12 pt-6 border-t border-[var(--clr-border-soft)]">
+        <p class="text-xs text-[var(--clr-ink-muted)] leading-relaxed">Access restricted to committee members listed in the Admins sheet. If you need access, contact <a href="mailto:scholarship@svaschool.org" class="text-[var(--clr-sage)] hover:underline">scholarship@svaschool.org</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ────────── DASHBOARD ────────── -->
+<section id="dashboardView" class="hidden">
+  <header class="bg-[var(--clr-paper)] border-b border-[var(--clr-border-soft)] sticky top-0 z-30">
+    <div class="max-w-[1400px] mx-auto px-8 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div style="width:40px;height:40px;border-radius:9px;background:var(--clr-forest);display:flex;align-items:center;justify-content:center;color:var(--clr-gold);font-family:'Fraunces',serif;font-weight:700;font-size:16px;">SVA</div>
+        <div>
+          <div class="text-sm font-semibold" style="color:var(--clr-forest);">SVA Scholarship</div>
+          <div class="text-xs text-[var(--clr-ink-muted)]">Committee Portal · <span id="adminEmail"></span></div>
         </div>
-    </section>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="loadApplications()" class="btn-icon" title="Refresh (⌘R)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        </button>
+        <button onclick="signOut()" class="btn-ghost">Sign out</button>
+      </div>
+    </div>
+    <div class="max-w-[1400px] mx-auto px-8 flex">
+      <div class="tab active" onclick="switchTab('apps',this)">Applications</div>
+      <div class="tab" onclick="switchTab('recs',this)">Recommendations</div>
+      <div class="tab" onclick="switchTab('analytics',this)">Analytics</div>
+    </div>
+  </header>
 
-    <!-- ────────── DASHBOARD ────────── -->
-    <section id="dashboardView" class="hidden">
-        <header class="bg-white border-b border-gray-200 sticky top-0 z-20" style="box-shadow:0 1px 3px rgba(0,0,0,.03);">
-            <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--clr-forest),var(--clr-sage));display:flex;align-items:center;justify-content:center;color:#c9a84c;font-family:'Lora',serif;font-weight:700;font-size:18px;">SVA</div>
-                    <div>
-                        <h1 class="text-xl leading-tight" style="color:var(--clr-forest);">Scholarship Committee Portal</h1>
-                        <p class="text-xs text-gray-500" id="adminEmail"></p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="loadApplications()" class="btn-ghost text-sm">↻ Refresh</button>
-                    <button onclick="signOut()" class="btn-ghost text-sm">Sign out</button>
-                </div>
-            </div>
-            <div class="max-w-7xl mx-auto px-6 flex gap-1">
-                <div class="tab active" onclick="switchTab('apps',this)">Applications</div>
-                <div class="tab" onclick="switchTab('recs',this)">Recommendations</div>
-            </div>
-        </header>
-
-        <main class="max-w-7xl mx-auto p-6">
-            <!-- Stats -->
-            <div id="statsBar" class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6"></div>
-
-            <!-- Applications tab -->
-            <div id="tabApps">
-                <div class="flex flex-wrap gap-2 mb-4 items-center">
-                    <input id="searchBox" class="form-input max-w-xs" placeholder="Search name, email, ID…" oninput="renderApps()">
-                    <select id="trackFilter" class="form-input max-w-xs" onchange="renderApps()">
-                        <option value="">All tracks</option>
-                        <option>Budding Scholar</option>
-                        <option>Junior Innovator</option>
-                        <option>Future Leader</option>
-                    </select>
-                    <select id="statusFilter" class="form-input max-w-xs" onchange="renderApps()">
-                        <option value="">All statuses</option>
-                        <option>Submitted</option>
-                        <option>Under Review</option>
-                        <option>Approved</option>
-                        <option>Rejected</option>
-                    </select>
-                </div>
-                <div id="appsTable" class="card overflow-hidden"></div>
-            </div>
-
-            <!-- Recommendations tab -->
-            <div id="tabRecs" class="hidden">
-                <div id="recsTable" class="card overflow-hidden"></div>
-            </div>
-        </main>
-    </section>
-
-    <!-- ────────── DETAIL MODAL ────────── -->
-    <div id="modal" class="modal-bg hidden">
-        <div class="modal p-0">
-            <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-start rounded-t-xl">
-                <div>
-                    <h2 class="text-xl" id="modalTitle" style="color:var(--clr-forest);"></h2>
-                    <p class="text-xs text-gray-500" id="modalSub"></p>
-                </div>
-                <button onclick="closeModal()" class="text-2xl text-gray-400 hover:text-gray-700 leading-none">&times;</button>
-            </div>
-            <div class="p-6" id="modalBody"></div>
-        </div>
+  <main class="max-w-[1400px] mx-auto px-8 py-8">
+    <!-- Page intro -->
+    <div class="mb-8 flex items-end justify-between flex-wrap gap-4">
+      <div>
+        <p class="eyebrow mb-2">Scholarship Program · 2025–26</p>
+        <h1 class="text-4xl" style="color:var(--clr-forest);">Applications Review</h1>
+        <p class="text-[var(--clr-ink-soft)] mt-2 text-sm">Review submitted applications, coordinate teacher recommendations, and record committee evaluations.</p>
+      </div>
     </div>
 
-    <script>
-    // ── CONFIG ──
-    const GOOGLE_CLIENT_ID = "14216824305-v19ecsmrhk1muaglrlhjceqjk5oeqr4n.apps.googleusercontent.com";
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzZ9LBchK0uKXZbrp_F-DuGddmIlXy1nVxjmjDVDTNZr8NXeGhD-AdIdkXeCO7e6kDNvA/exec";
-    const RECOMMENDER_URL = "https://recommend.svaportal.com";
-    let idToken = null;
-    let currentEmail = null;
-    let applications = [];
+    <!-- Stats -->
+    <div id="statsBar" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10"></div>
 
-    // ── GOOGLE AUTH ──
-    window.onload = () => {
-        const interval = setInterval(() => {
-            if (window.google && window.google.accounts) {
-                clearInterval(interval);
-                google.accounts.id.initialize({
-                    client_id: GOOGLE_CLIENT_ID,
-                    callback: handleCredential
-                });
-                google.accounts.id.renderButton(document.getElementById("googleBtn"),
-                {
-                    theme: "filled_blue",
-                    size: "large",
-                    text: "signin_with",
-                    shape: "rectangular"
-                });
-            }
-        }, 100);
-    };
+    <!-- Applications tab -->
+    <div id="tabApps">
+      <div class="flex flex-wrap gap-3 mb-6 items-center">
+        <div class="relative flex-1 max-w-md">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--clr-ink-muted)]" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input id="searchBox" class="form-input pl-9" placeholder="Search by student, email, or ID…" oninput="renderApps()">
+        </div>
+        <div class="flex gap-1.5 flex-wrap" id="trackPills">
+          <button class="pill active" data-filter="track" data-value="" onclick="setPill(this)">All tracks</button>
+          <button class="pill" data-filter="track" data-value="Budding Scholar" onclick="setPill(this)">Budding Scholar</button>
+          <button class="pill" data-filter="track" data-value="Junior Innovator" onclick="setPill(this)">Junior Innovator</button>
+          <button class="pill" data-filter="track" data-value="Future Leader" onclick="setPill(this)">Future Leader</button>
+        </div>
+        <select id="statusFilter" class="form-input max-w-[160px]" onchange="renderApps()">
+          <option value="">All statuses</option>
+          <option>Submitted</option>
+          <option>Under Review</option>
+          <option>Approved</option>
+          <option>Rejected</option>
+        </select>
+        <div id="resultCount" class="text-xs text-[var(--clr-ink-muted)] ml-auto"></div>
+      </div>
+      <div id="appsTable" class="card overflow-hidden"></div>
+    </div>
 
-    async function handleCredential(resp) {
-        idToken = resp.credential;
-        try {
-            const r = await callBackend({
-                action: "adminVerify",
-                token: idToken
-            });
-            if (r.status !== "success") {
-                showLoginError(r.message);
-                return;
-            }
-            currentEmail = r.email;
-            document.getElementById("adminEmail").textContent = r.email;
-            document.getElementById("loginView").classList.add("hidden");
-            document.getElementById("dashboardView").classList.remove("hidden");
-            loadApplications();
-        } catch (e) {
-            showLoginError("Network error: " + e.message);
-        }
+    <!-- Recommendations tab -->
+    <div id="tabRecs" class="hidden">
+      <div id="recsTable" class="card overflow-hidden"></div>
+    </div>
+
+    <!-- Analytics tab -->
+    <div id="tabAnalytics" class="hidden">
+      <div id="analyticsPane"></div>
+    </div>
+  </main>
+</section>
+
+<!-- ────────── SLIDE-OVER DETAIL PANEL ────────── -->
+<div id="panelBackdrop" class="panel-backdrop" onclick="closeModal()"></div>
+<aside id="modal" class="slide-panel">
+  <header class="sticky top-0 bg-[var(--clr-ivory)] border-b border-[var(--clr-border-soft)] px-8 py-5 z-10 flex justify-between items-start gap-4">
+    <div class="min-w-0">
+      <p class="eyebrow mb-1" id="modalEyebrow">Application</p>
+      <h2 class="text-2xl truncate" id="modalTitle" style="color:var(--clr-forest);"></h2>
+      <p class="text-sm text-[var(--clr-ink-soft)] mt-1" id="modalSub"></p>
+    </div>
+    <button onclick="closeModal()" class="btn-icon flex-shrink-0" title="Close (Esc)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+  </header>
+  <div class="px-8 py-6" id="modalBody"></div>
+</aside>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script>
+// ── CONFIG ──
+const GOOGLE_CLIENT_ID = "14216824305-v19ecsmrhk1muaglrlhjceqjk5oeqr4n.apps.googleusercontent.com";
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzZ9LBchK0uKXZbrp_F-DuGddmIlXy1nVxjmjDVDTNZr8NXeGhD-AdIdkXeCO7e6kDNvA/exec";
+const RECOMMENDER_URL = "https://recommend.svaportal.com";
+let idToken = null;
+let currentEmail = null;
+let applications = [];
+
+// ── GOOGLE AUTH ──
+window.onload = () => {
+  const interval = setInterval(() => {
+    if (window.google && window.google.accounts) {
+      clearInterval(interval);
+      google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredential });
+      google.accounts.id.renderButton(document.getElementById("googleBtn"),
+        { theme:"filled_blue", size:"large", text:"signin_with", shape:"rectangular" });
     }
+  }, 100);
+};
 
-    function showLoginError(msg) {
-        const el = document.getElementById("loginError");
-        el.textContent = msg;
-        el.classList.remove("hidden");
-    }
+async function handleCredential(resp) {
+  idToken = resp.credential;
+  try {
+    const r = await callBackend({ action:"adminVerify", token: idToken });
+    if (r.status !== "success") { showLoginError(r.message); return; }
+    currentEmail = r.email;
+    document.getElementById("adminEmail").textContent = r.email;
+    document.getElementById("loginView").classList.add("hidden");
+    document.getElementById("dashboardView").classList.remove("hidden");
+    loadApplications();
+  } catch (e) { showLoginError("Network error: " + e.message); }
+}
 
-    function signOut() {
-        google.accounts.id.disableAutoSelect();
-        location.reload();
-    }
+function showLoginError(msg) {
+  const el = document.getElementById("loginError");
+  el.textContent = msg; el.classList.remove("hidden");
+}
 
-    // ── BACKEND CALL ──
-    async function callBackend(payload) {
-        const r = await fetch(BACKEND_URL, {
-            method: "POST",
-            body: JSON.stringify(payload),
-            headers: {
-                "Content-Type": "text/plain;charset=utf-8"
-            } // avoids CORS preflight on Apps Script
-        });
-        return r.json();
-    }
+function signOut() { google.accounts.id.disableAutoSelect(); location.reload(); }
 
-    // ── LOAD APPS ──
-    async function loadApplications() {
-        const r = await callBackend({
-            action: "listApplications",
-            token: idToken
-        });
-        if (r.status !== "success") {
-            alert(r.message);
-            return;
-        }
-        applications = r.applications || [];
-        renderStats();
-        renderApps();
-    }
+// ── BACKEND CALL ──
+async function callBackend(payload) {
+  const r = await fetch(BACKEND_URL, {
+    method:"POST", body: JSON.stringify(payload),
+    headers: { "Content-Type": "text/plain;charset=utf-8" }  // avoids CORS preflight on Apps Script
+  });
+  return r.json();
+}
 
-    function renderStats() {
-        const total = applications.length;
-        const submitted = applications.filter(a => a.status === "Submitted").length;
-        const scored = applications.filter(a => (a.scores || []).length > 0).length;
-        const pendingRecs = applications.reduce((n, a) => n + (a.recommenders || []).filter(r => r.status !== "Submitted").length, 0);
-        const byTrack = t => applications.filter(a => a.track === t).length;
-        const cards = [
-        {
-            label: "Applications",
-            value: total,
-            sub: submitted + " submitted"
-        },
-        {
-            label: "Awaiting Review",
-            value: submitted - scored,
-            sub: scored + " scored"
-        },
-        {
-            label: "Pending Recs",
-            value: pendingRecs,
-            sub: "across all students"
-        },
-        {
-            label: "Budding Scholar",
-            value: byTrack("Budding Scholar"),
-            sub: "K–2"
-        },
-        {
-            label: "Junior / Future",
-            value: byTrack("Junior Innovator") + " / " + byTrack("Future Leader"),
-            sub: "3–5 · 6–8"
-        }
-        ];
-        document.getElementById("statsBar").innerHTML = cards.map(c =>
-        `<div class="card stat-card p-4">
+// ── LOAD APPS ──
+async function loadApplications() {
+  const r = await callBackend({ action:"listApplications", token: idToken });
+  if (r.status !== "success") { alert(r.message); return; }
+  applications = r.applications || [];
+  renderStats();
+  renderApps();
+}
+
+function renderStats() {
+  const total = applications.length;
+  const submitted = applications.filter(a => a.status === "Submitted").length;
+  const scored = applications.filter(a => (a.scores||[]).length > 0).length;
+  const pendingRecs = applications.reduce((n,a) => n + (a.recommenders||[]).filter(r => r.status !== "Submitted").length, 0);
+  const byTrack = t => applications.filter(a => a.track === t).length;
+  const cards = [
+    { label:"Applications",    value: total,     sub: submitted + " submitted" },
+    { label:"Awaiting Review", value: submitted - scored, sub: scored + " scored" },
+    { label:"Pending Recs",    value: pendingRecs, sub: "across all students" },
+    { label:"Budding Scholar", value: byTrack("Budding Scholar"), sub:"K–2" },
+    { label:"Junior / Future", value: byTrack("Junior Innovator") + " / " + byTrack("Future Leader"), sub:"3–5 · 6–8" }
+  ];
+  document.getElementById("statsBar").innerHTML = cards.map(c =>
+    `<div class="card stat-card p-4">
        <div class="section-label">${c.label}</div>
        <div class="text-2xl font-bold mt-1" style="color:var(--clr-forest);">${c.value}</div>
        <div class="text-xs text-gray-500 mt-1">${c.sub}</div>
-     </div>`
-        ).join("");
+     </div>`).join("");
+}
+
+function trackChip(t) {
+  const cls = t === "Budding Scholar" ? "track-budding" : t === "Junior Innovator" ? "track-junior" : "track-future";
+  return `<span class="chip ${cls}">${t||"—"}</span>`;
+}
+
+function renderApps() {
+  const q = (document.getElementById("searchBox").value || "").toLowerCase();
+  const tf = document.getElementById("trackFilter").value;
+  const sf = document.getElementById("statusFilter").value;
+  const filtered = applications.filter(a => {
+    if (tf && a.track !== tf) return false;
+    if (sf && a.status !== sf) return false;
+    if (q) {
+      const hay = [a.studentName,a.studentEmail,a.parentEmail,a.studentId].join(" ").toLowerCase();
+      if (!hay.includes(q)) return false;
     }
+    return true;
+  });
 
-    function trackChip(t) {
-        const cls = t === "Budding Scholar" ? "track-budding" : t === "Junior Innovator" ? "track-junior" : "track-future";
-        return `<span class="chip ${cls}">${t || "—"}</span>`;
-    }
+  if (!filtered.length) {
+    document.getElementById("appsTable").innerHTML = '<div class="p-8 text-center text-gray-500">No applications found.</div>';
+    return;
+  }
 
-    function renderApps() {
-        const q = (document.getElementById("searchBox").value || "").toLowerCase();
-        const tf = document.getElementById("trackFilter").value;
-        const sf = document.getElementById("statusFilter").value;
-        const filtered = applications.filter(a => {
-            if (tf && a.track !== tf)
-                return false;
-            if (sf && a.status !== sf)
-                return false;
-            if (q) {
-                const hay = [a.studentName, a.studentEmail, a.parentEmail, a.studentId].join(" ").toLowerCase();
-                if (!hay.includes(q))
-                    return false;
-            }
-            return true;
-        });
-
-        if (!filtered.length) {
-            document.getElementById("appsTable").innerHTML = '<div class="p-8 text-center text-gray-500">No applications found.</div>';
-            return;
-        }
-
-        const initials = s => (s || "?").toString().trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
-        const rows = filtered.map(a => {
-            const invited = a.recommenders || [];
-            const recCount = invited.length;
-            const recDone = invited.filter(r => r.status === "Submitted").length;
-            const nomCount = [a.teacher1, a.teacher2].filter(t => t && t.email).length;
-            const scoreCount = (a.scores || []).length;
-            const avg = scoreCount ? (a.scores.reduce((s, x) => s + Number(x.total || 0), 0) / scoreCount).toFixed(1) : "—";
-            const recLabel = recCount > 0
-            ? `<span class="${recDone === recCount ? 'text-emerald-700 font-semibold' : 'text-amber-700'}">${recDone}/${recCount}</span>`
-            : (nomCount > 0 ? `<span class="text-gray-500 italic">${nomCount} nominated</span>` : `<span class="text-gray-400">—</span>`);
-            return `<tr class="border-t border-gray-100 hover:bg-amber-50/40 cursor-pointer transition" onclick='openModal(${JSON.stringify(a.studentId)})'>
+  const initials = s => (s||"?").toString().trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
+  const rows = filtered.map(a => {
+    const invited = a.recommenders||[];
+    const recCount = invited.length;
+    const recDone = invited.filter(r => r.status === "Submitted").length;
+    const nomCount = [a.teacher1, a.teacher2].filter(t => t && t.email).length;
+    const scoreCount = (a.scores||[]).length;
+    const avg = scoreCount ? (a.scores.reduce((s,x)=>s+Number(x.total||0),0)/scoreCount).toFixed(1) : "—";
+    const recLabel = recCount > 0
+      ? `<span class="${recDone===recCount?'text-emerald-700 font-semibold':'text-amber-700'}">${recDone}/${recCount}</span>`
+      : (nomCount > 0 ? `<span class="text-gray-500 italic">${nomCount} nominated</span>` : `<span class="text-gray-400">—</span>`);
+    return `<tr class="border-t border-gray-100 hover:bg-amber-50/40 cursor-pointer transition" onclick='openModal(${JSON.stringify(a.studentId)})'>
       <td class="p-3">
         <div class="flex items-center gap-3">
-          <div class="rec-avatar" style="width:32px;height:32px;font-size:11px;">${
-
-            initials(a.studentName)}</div>
+          <div class="rec-avatar" style="width:32px;height:32px;font-size:11px;">${initials(a.studentName)}</div>
           <div class="min-w-0">
-            <div class="font-semibold truncate">${
-            escapeHtml(a.studentName || "")}</div>
-            <div class="text-xs text-gray-500 font-mono">${escapeHtml(a.studentId || "")}</div>
+            <div class="font-semibold truncate">${escapeHtml(a.studentName||"")}</div>
+            <div class="text-xs text-gray-500 font-mono">${escapeHtml(a.studentId||"")}</div>
           </div>
         </div>
       </td>
-      <td class="p-3 text-sm">${
-
-
-            escapeHtml(a.grade || "")}</td>
+      <td class="p-3 text-sm">${escapeHtml(a.grade||"")}</td>
       <td class="p-3">${trackChip(a.track)}</td>
-      <td class="p-3 text-xs text-gray-600 truncate max-w-[180px]">${escapeHtml(a.parentEmail || "")}</td>
-      <td class="p-3"><span class="chip ${a.status === 'Submitted' ? 'chip-sent' : 'chip-pending'}">${escapeHtml(a.status || "—")}</span></td>
+      <td class="p-3 text-xs text-gray-600 truncate max-w-[180px]">${escapeHtml(a.parentEmail||"")}</td>
+      <td class="p-3"><span class="chip ${a.status==='Submitted'?'chip-sent':'chip-pending'}">${escapeHtml(a.status||"—")}</span></td>
       <td class="p-3 text-xs">${recLabel}</td>
       <td class="p-3 text-sm">${scoreCount ? `<strong>${avg}</strong> <span class="text-gray-400 text-xs">(${scoreCount})</span>` : "<span class='text-gray-400'>—</span>"}</td>
-    </tr>`
-            ;
-        }).join("");
+    </tr>`;
+  }).join("");
 
-        document.getElementById("appsTable").innerHTML = `
+  document.getElementById("appsTable").innerHTML = `
     <table class="w-full text-sm">
       <thead class="bg-amber-50/60 text-xs uppercase tracking-wide text-gray-600">
         <tr><th class="p-3 text-left">Student</th><th class="p-3 text-left">Grade</th><th class="p-3 text-left">Track</th>
             <th class="p-3 text-left">Parent</th><th class="p-3 text-left">Status</th>
             <th class="p-3 text-left">Recs</th><th class="p-3 text-left">Avg Score</th></tr>
-      </thead><tbody>${
+      </thead><tbody>${rows}</tbody>
+    </table>`;
+}
 
+function switchTab(which, el) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  el.classList.add("active");
+  document.getElementById("tabApps").classList.toggle("hidden", which !== "apps");
+  document.getElementById("tabRecs").classList.toggle("hidden", which !== "recs");
+  if (which === "recs") loadRecs();
+}
 
-
-
-        rows}</tbody>
-    </table>`
-        ;
-    }
-
-    function switchTab(which, el) {
-        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-        el.classList.add("active");
-        document.getElementById("tabApps").classList.toggle("hidden", which !== "apps");
-        document.getElementById("tabRecs").classList.toggle("hidden", which !== "recs");
-        if (which === "recs")
-            loadRecs();
-    }
-
-    async function loadRecs() {
-        const r = await callBackend({
-            action: "listRecommendations",
-            token: idToken
-        });
-        if (r.status !== "success") {
-            alert(r.message);
-            return;
-        }
-        const items = r.items || [];
-        if (!items.length) {
-            document.getElementById("recsTable").innerHTML = '<div class="p-8 text-center text-gray-500">No recommendations sent yet.</div>';
-            return;
-        }
-        const rows = items.map(x => `<tr class="border-t border-gray-100">
-    <td class="p-3"><div class="font-semibold">${escapeHtml(x.studentName || "")}</div><div class="text-xs text-gray-500">${escapeHtml(x.studentId || "")}</div></td>
+async function loadRecs() {
+  const r = await callBackend({ action:"listRecommendations", token: idToken });
+  if (r.status !== "success") { alert(r.message); return; }
+  const items = r.items || [];
+  if (!items.length) { document.getElementById("recsTable").innerHTML='<div class="p-8 text-center text-gray-500">No recommendations sent yet.</div>'; return; }
+  const rows = items.map(x => `<tr class="border-t border-gray-100">
+    <td class="p-3"><div class="font-semibold">${escapeHtml(x.studentName||"")}</div><div class="text-xs text-gray-500">${escapeHtml(x.studentId||"")}</div></td>
     <td class="p-3">${trackChip(x.track)}</td>
-    <td class="p-3"><div>${escapeHtml(x.teacherName || "")}</div><div class="text-xs text-gray-500">${escapeHtml(x.teacherEmail || "")}</div></td>
-    <td class="p-3 text-xs">${escapeHtml(x.school || "")}</td>
-    <td class="p-3"><span class="chip ${x.status === 'Submitted' ? 'chip-done' : 'chip-sent'}">${escapeHtml(x.status || "")}</span></td>
+    <td class="p-3"><div>${escapeHtml(x.teacherName||"")}</div><div class="text-xs text-gray-500">${escapeHtml(x.teacherEmail||"")}</div></td>
+    <td class="p-3 text-xs">${escapeHtml(x.school||"")}</td>
+    <td class="p-3"><span class="chip ${x.status==='Submitted'?'chip-done':'chip-sent'}">${escapeHtml(x.status||"")}</span></td>
     <td class="p-3 text-xs">${x.submittedOn ? new Date(x.submittedOn).toLocaleDateString() : "—"}</td>
-    <td class="p-3">${x.status === 'Submitted' ? `<button onclick='viewRec(${JSON.stringify(x).replace(/'/g, "&#39;")})' class="btn-ghost text-xs">View</button>` : ""}</td>
-  </tr>`
-        ).join("");
-        document.getElementById("recsTable").innerHTML = `<table class="w-full text-sm">
+    <td class="p-3">${x.status==='Submitted' ? `<button onclick='viewRec(${JSON.stringify(x).replace(/'/g,"&#39;")})' class="btn-ghost text-xs">View</button>` : ""}</td>
+  </tr>`).join("");
+  document.getElementById("recsTable").innerHTML = `<table class="w-full text-sm">
     <thead class="bg-amber-50/60 text-xs uppercase tracking-wide text-gray-600">
       <tr><th class="p-3 text-left">Student</th><th class="p-3 text-left">Track</th><th class="p-3 text-left">Recommender</th>
           <th class="p-3 text-left">School</th><th class="p-3 text-left">Status</th>
           <th class="p-3 text-left">Submitted</th><th></th></tr>
-    </thead><tbody>${
+    </thead><tbody>${rows}</tbody></table>`;
+}
 
+function viewRec(rec) {
+  document.getElementById("modalTitle").textContent = "Recommendation — " + rec.studentName;
+  document.getElementById("modalSub").textContent = `${rec.teacherName} (${rec.teacherEmail}) · ${rec.track}`;
+  const resp = rec.responses || {};
+  const rows = Object.keys(resp).map(k => `<tr class="border-b border-gray-100"><td class="py-2 pr-4 text-gray-600 align-top">${escapeHtml(k)}</td><td class="py-2"><strong>${escapeHtml(String(resp[k]))}</strong></td></tr>`).join("");
+  document.getElementById("modalBody").innerHTML = rows ? `<table class="w-full text-sm">${rows}</table>` : "<p class='text-gray-500'>No responses.</p>";
+  document.getElementById("modal").classList.remove("hidden");
+}
 
+// ── APPLICATION DETAIL MODAL ──
+function openModal(studentId) {
+  const a = applications.find(x => String(x.studentId) === String(studentId));
+  if (!a) return;
+  document.getElementById("modalTitle").textContent = a.studentName;
+  document.getElementById("modalSub").textContent = `${a.studentId} · Grade ${a.grade} · ${a.track}`;
 
-        rows}</tbody></table>`;
-    }
+  const filesHtml = Object.entries(a.files||{}).filter(([,v]) => v).map(([k,v]) =>
+    `<a href="${escapeHtml(v)}" target="_blank" class="inline-block btn-ghost text-xs mr-2 mb-2">📄 Form ${k}</a>`
+  ).join("") || '<span class="text-gray-500 text-sm">No files uploaded.</span>';
 
-    function viewRec(rec) {
-        document.getElementById("modalTitle").textContent = "Recommendation — " + rec.studentName;
-        document.getElementById("modalSub").textContent = `${rec.teacherName} (${rec.teacherEmail}) · ${rec.track}`;
-        const resp = rec.responses || {};
-        const rows = Object.keys(resp).map(k => `<tr class="border-b border-gray-100"><td class="py-2 pr-4 text-gray-600 align-top">${escapeHtml(k)}</td><td class="py-2"><strong>${escapeHtml(String(resp[k]))}</strong></td></tr>`).join("");
-        document.getElementById("modalBody").innerHTML = rows ? `<table class="w-full text-sm">${rows}</table>` : "<p class='text-gray-500'>No responses.</p>";
-        document.getElementById("modal").classList.remove("hidden");
-    }
+  // ── Merge parent-nominated teachers (from Applications sheet L2_*) with already-invited recs ──
+  const invited = a.recommenders || [];
+  const invitedEmails = new Set(invited.map(r => (r.teacherEmail||"").toLowerCase().trim()).filter(Boolean));
+  const nominated = [];
+  [a.teacher1, a.teacher2].forEach((t, idx) => {
+    if (!t || !t.email) return;
+    const em = t.email.toLowerCase().trim();
+    if (!invitedEmails.has(em)) nominated.push({ ...t, slot: idx + 1 });
+  });
 
-    // ── APPLICATION DETAIL MODAL ──
-    function openModal(studentId) {
-        const a = applications.find(x => String(x.studentId) === String(studentId));
-        if (!a)
-            return;
-        document.getElementById("modalTitle").textContent = a.studentName;
-        document.getElementById("modalSub").textContent = `${a.studentId} · Grade ${a.grade} · ${a.track}`;
-
-        const filesHtml = Object.entries(a.files || {}).filter(([, v]) => v).map(([k, v]) =>
-        `<a href="${escapeHtml(v)}" target="_blank" class="inline-block btn-ghost text-xs mr-2 mb-2">📄 Form ${k}</a>`
-        ).join("") || '<span class="text-gray-500 text-sm">No files uploaded.</span>';
-
-        // ── Merge parent-nominated teachers (from Applications sheet L2_*) with already-invited recs ──
-        const invited = a.recommenders || [];
-        const invitedEmails = new Set(invited.map(r => (r.teacherEmail || "").toLowerCase().trim()).filter(Boolean));
-        const nominated = [];
-        [a.teacher1, a.teacher2].forEach((t, idx) => {
-            if (!t || !t.email)
-                return;
-            const em = t.email.toLowerCase().trim();
-            if (!invitedEmails.has(em))
-                nominated.push({
-                    ...t,
-                    slot: idx + 1
-                });
-        });
-
-        const initials = s => (s || "?").toString().trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
-        const renderRec = (r, isNominated) => {
-            const auto = !isNominated && r.status === 'Submitted' && r.responses ? scoreRecommendation(a.track, r.responses) : null;
-            return `
-    <div class="rec-row ${isNominated ? 'nominated' : ''}">
+  const initials = s => (s||"?").toString().trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
+  const renderRec = (r, isNominated) => {
+    const auto = !isNominated && r.status === 'Submitted' && r.responses ? scoreRecommendation(a.track, r.responses) : null;
+    return `
+    <div class="rec-row ${isNominated?'nominated':''}">
       <div class="flex items-center gap-3 min-w-0 flex-1">
-        <div class="rec-avatar">${
-            initials(r.teacherName || r.name)}</div>
+        <div class="rec-avatar">${initials(r.teacherName||r.name)}</div>
         <div class="min-w-0 flex-1">
-          <div class="font-semibold truncate">${
-            escapeHtml(r.teacherName || r.name || "(unnamed)")}</div>
-          <div class="text-xs text-gray-500 truncate">${escapeHtml(r.teacherEmail || r.email || "")}${r.school ? ` · ${escapeHtml(r.school)}` : ""}</div>
+          <div class="font-semibold truncate">${escapeHtml(r.teacherName||r.name||"(unnamed)")}</div>
+          <div class="text-xs text-gray-500 truncate">${escapeHtml(r.teacherEmail||r.email||"")}${r.school?` · ${escapeHtml(r.school)}`:""}</div>
         </div>
       </div>
       <div class="flex items-center gap-2 flex-shrink-0">
-        ${
-
-
-            auto ? scoreBadge(auto.pct) : ""}
-        ${isNominated ? `<span class="chip chip-nominated">Nominated by parent</span>
-             <button onclick='inviteNominated(${JSON.stringify(a.studentId)}, ${JSON.stringify(r)})' class="btn-gold text-xs">Send Link</button>` : `<span class="chip ${r.status === 'Submitted' ? 'chip-done' : 'chip-sent'}">${r.status === 'Submitted' ? '✓ Submitted' : '⧗ ' + (r.status || 'Sent')}</span>
-             ${r.status === 'Submitted' && r.responses ? `<button onclick='viewRecFromApp(${JSON.stringify(a.studentId)}, ${JSON.stringify(r.teacherEmail || '')})' class="btn-ghost text-xs">View</button>` : ""}`}
+        ${auto ? scoreBadge(auto.pct) : ""}
+        ${isNominated
+          ? `<span class="chip chip-nominated">Nominated by parent</span>
+             <button onclick='inviteNominated(${JSON.stringify(a.studentId)}, ${JSON.stringify(r)})' class="btn-gold text-xs">Send Link</button>`
+          : `<span class="chip ${r.status==='Submitted'?'chip-done':'chip-sent'}">${r.status==='Submitted'?'✓ Submitted':'⧗ '+(r.status||'Sent')}</span>
+             ${r.status==='Submitted' && r.responses ? `<button onclick='viewRecFromApp(${JSON.stringify(a.studentId)}, ${JSON.stringify(r.teacherEmail||'')})' class="btn-ghost text-xs">View</button>` : ""}`}
       </div>
-    </div>`
+    </div>`;
+  };
 
-            ;
-        };
+  const allRecsHtml =
+    (nominated.length || invited.length)
+      ? (nominated.map(r => renderRec(r, true)).join("") + invited.map(r => renderRec(r, false)).join(""))
+      : '<p class="text-sm text-gray-500 italic">No recommenders nominated or invited yet.</p>';
 
-        const allRecsHtml =
-        (nominated.length || invited.length)
-        ? (nominated.map(r => renderRec(r, true)).join("") + invited.map(r => renderRec(r, false)).join(""))
-        : '<p class="text-sm text-gray-500 italic">No recommenders nominated or invited yet.</p>';
+  const quickInviteBtn = nominated.length >= 2
+    ? `<button onclick='inviteAllNominated(${JSON.stringify(a.studentId)})' class="btn-primary text-xs">✉ Send to All Nominated</button>` : "";
 
-        const quickInviteBtn = nominated.length >= 2
-        ? `<button onclick='inviteAllNominated(${JSON.stringify(a.studentId)})' class="btn-primary text-xs">✉ Send to All Nominated</button>` : "";
+  const myScore = (a.scores||[]).find(s => (s.scorer||"").toLowerCase() === (currentEmail||"").toLowerCase()) || {};
+  const submittedDate = a.timestamp ? new Date(a.timestamp).toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"}) : "—";
 
-        const myScore = (a.scores || []).find(s => (s.scorer || "").toLowerCase() === (currentEmail || "").toLowerCase()) || {};
-        const submittedDate = a.timestamp ? new Date(a.timestamp).toLocaleDateString(undefined, {
-            year: "numeric",
-            month: "short",
-            day: "numeric"
-        }) : "—";
-
-        document.getElementById("modalBody").innerHTML = `
+  document.getElementById("modalBody").innerHTML = `
     <div class="mb-6 pb-5 border-b border-gray-200">
-      <div class="flex flex-wrap items-center gap-2 mb-3">${
-        trackChip(a.track)} <span class="chip chip-sent">${escapeHtml(a.status || "")}</span>
+      <div class="flex flex-wrap items-center gap-2 mb-3">${trackChip(a.track)} <span class="chip chip-sent">${escapeHtml(a.status||"")}</span>
         <span class="text-xs text-gray-400 ml-auto">Submitted ${submittedDate}</span>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-        <div><div class="section-label">Parent</div><div class="mt-1">${
-
-        escapeHtml(a.parentEmail || "—")}</div></div>
-        <div><div class="section-label">Student Email</div><div class="mt-1">${escapeHtml(a.studentEmail || "—")}</div></div>
-        <div><div class="section-label">Grade</div><div class="mt-1">${escapeHtml(a.grade || "—")}</div></div>
-        <div><div class="section-label">Student ID</div><div class="mt-1 font-mono text-xs">${escapeHtml(a.studentId || "—")}</div></div>
+        <div><div class="section-label">Parent</div><div class="mt-1">${escapeHtml(a.parentEmail||"—")}</div></div>
+        <div><div class="section-label">Student Email</div><div class="mt-1">${escapeHtml(a.studentEmail||"—")}</div></div>
+        <div><div class="section-label">Grade</div><div class="mt-1">${escapeHtml(a.grade||"—")}</div></div>
+        <div><div class="section-label">Student ID</div><div class="mt-1 font-mono text-xs">${escapeHtml(a.studentId||"—")}</div></div>
       </div>
-      ${
-        a.folderLink ? `<a href="${escapeHtml(a.folderLink)}" target="_blank" class="btn-gold text-xs inline-block mt-4">Open Drive Folder ↗</a>` : ""}
+      ${a.folderLink ? `<a href="${escapeHtml(a.folderLink)}" target="_blank" class="btn-gold text-xs inline-block mt-4">Open Drive Folder ↗</a>` : ""}
     </div>
 
     <div class="mb-6">
       <div class="section-label mb-2">Uploaded Forms</div>
-      ${
-
-
-
-        filesHtml}
+      ${filesHtml}
     </div>
 
     <div class="mb-6">
       <div class="flex items-center justify-between mb-3">
         <div class="section-label">Recommenders</div>
         <div class="flex gap-2">
-          ${
-
-
-
-
-
-        quickInviteBtn}
+          ${quickInviteBtn}
           <button onclick="showRecForm('${a.studentId}')" class="btn-ghost text-xs">+ Add manually</button>
         </div>
       </div>
-      ${
-
-        allRecsHtml}
-      ${(() => {const agg = aggregateRecScores(a);if (!agg)return "";return `<div class="mt-3 p-3 rounded-lg flex items-center justify-between" style="background:linear-gradient(to right,#fffef8,#f5ecd0);border:1px solid var(--clr-gold);">
+      ${allRecsHtml}
+      ${(() => {
+        const agg = aggregateRecScores(a);
+        if (!agg) return "";
+        return `<div class="mt-3 p-3 rounded-lg flex items-center justify-between" style="background:linear-gradient(to right,#fffef8,#f5ecd0);border:1px solid var(--clr-gold);">
           <div>
             <div class="section-label">Auto-Scored Average</div>
-            <div class="text-xs text-gray-600 mt-1">Computed from ${
-
-            agg.count} submitted recommendation${agg.count > 1 ? 's' : ''} using the ${escapeHtml(a.track)} rubric.</div>
+            <div class="text-xs text-gray-600 mt-1">Computed from ${agg.count} submitted recommendation${agg.count>1?'s':''} using the ${escapeHtml(a.track)} rubric.</div>
           </div>
           <div class="text-right">
-            <div class="text-3xl font-bold" style="color:var(--clr-forest);">${
-
-            agg.avgPct}<span class="text-base text-gray-400">/100</span></div>
+            <div class="text-3xl font-bold" style="color:var(--clr-forest);">${agg.avgPct}<span class="text-base text-gray-400">/100</span></div>
           </div>
-        </div>`
-            ;})()}
+        </div>`;
+      })()}
     </div>
 
     <div id="recFormWrap" class="hidden card p-4 mb-6" style="background:var(--clr-gold-light);border:1px solid var(--clr-gold);"></div>
 
     <div class="section-label mb-3">Your Evaluation</div>
-    ${
+    ${scoreFormHtml(a, myScore)}
+  `;
 
+  document.getElementById("modal").classList.remove("hidden");
+}
 
+// ── Invite a nominated teacher (one-click from the list) ──
+async function inviteNominated(studentId, teacher) {
+  const rec = { name: teacher.teacherName || teacher.name || "", email: teacher.teacherEmail || teacher.email || "", school: teacher.school || "" };
+  if (!rec.email) { alert("No email on file."); return; }
+  const r = await callBackend({ action:"sendRecommenderLinks", token: idToken, studentId, recommenders:[rec], recommenderUrl: RECOMMENDER_URL });
+  if (r.status !== "success") { alert(r.message||"Failed."); return; }
+  const sent = (r.results||[]).filter(x=>x.status==="sent").length;
+  alert(sent ? "Invitation sent to " + rec.email : "Failed to send.");
+  await loadApplications(); openModal(studentId);
+}
 
+async function inviteAllNominated(studentId) {
+  const a = applications.find(x => String(x.studentId) === String(studentId));
+  if (!a) return;
+  const invitedEmails = new Set((a.recommenders||[]).map(r => (r.teacherEmail||"").toLowerCase().trim()));
+  const recs = [a.teacher1, a.teacher2].filter(t => t && t.email && !invitedEmails.has(t.email.toLowerCase().trim()))
+    .map(t => ({ name: t.name, email: t.email, school: t.school }));
+  if (!recs.length) { alert("No nominated teachers to invite."); return; }
+  if (!confirm(`Send secure recommendation links to ${recs.length} teacher(s)?`)) return;
+  const r = await callBackend({ action:"sendRecommenderLinks", token: idToken, studentId, recommenders: recs, recommenderUrl: RECOMMENDER_URL });
+  if (r.status !== "success") { alert(r.message||"Failed."); return; }
+  alert("Sent " + (r.results||[]).filter(x=>x.status==="sent").length + " invitation(s).");
+  await loadApplications(); openModal(studentId);
+}
 
-        scoreFormHtml(a, myScore)}
-  `
-        ;
-
-        document.getElementById("modal").classList.remove("hidden");
-    }
-
-    // ── Invite a nominated teacher (one-click from the list) ──
-    async function inviteNominated(studentId, teacher) {
-        const rec = {
-            name: teacher.teacherName || teacher.name || "",
-            email: teacher.teacherEmail || teacher.email || "",
-            school: teacher.school || ""
-        };
-        if (!rec.email) {
-            alert("No email on file.");
-            return;
-        }
-        const r = await callBackend({
-            action: "sendRecommenderLinks",
-            token: idToken,
-            studentId,
-            recommenders: [rec],
-            recommenderUrl: RECOMMENDER_URL
-        });
-        if (r.status !== "success") {
-            alert(r.message || "Failed.");
-            return;
-        }
-        const sent = (r.results || []).filter(x => x.status === "sent").length;
-        alert(sent ? "Invitation sent to " + rec.email : "Failed to send.");
-        await loadApplications();
-        openModal(studentId);
-    }
-
-    async function inviteAllNominated(studentId) {
-        const a = applications.find(x => String(x.studentId) === String(studentId));
-        if (!a)
-            return;
-        const invitedEmails = new Set((a.recommenders || []).map(r => (r.teacherEmail || "").toLowerCase().trim()));
-        const recs = [a.teacher1, a.teacher2].filter(t => t && t.email && !invitedEmails.has(t.email.toLowerCase().trim()))
-        .map(t => ({
-            name: t.name,
-            email: t.email,
-            school: t.school
-        }));
-        if (!recs.length) {
-            alert("No nominated teachers to invite.");
-            return;
-        }
-        if (!confirm(`Send secure recommendation links to ${recs.length} teacher(s)?`))
-            return;
-        const r = await callBackend({
-            action: "sendRecommenderLinks",
-            token: idToken,
-            studentId,
-            recommenders: recs,
-            recommenderUrl: RECOMMENDER_URL
-        });
-        if (r.status !== "success") {
-            alert(r.message || "Failed.");
-            return;
-        }
-        alert("Sent " + (r.results || []).filter(x => x.status === "sent").length + " invitation(s).");
-        await loadApplications();
-        openModal(studentId);
-    }
-
-    function scoreFormHtml(a, s) {
-        const rubric = rubricForTrack(a.track);
-        const maxTotal = rubric.reduce((x, c) => x + c.max, 0);
-        const currentTotal = Number(s.academic || 0) + Number(s.character || 0) + Number(s.essay || 0) + Number(s.need || 0);
-        const agg = aggregateRecScores(a);
-        const charRubric = rubric.find(c => c.key === "character");
-        const suggestedChar = agg && charRubric ? Math.round(agg.avgPct / 100 * charRubric.max) : null;
-        return `
+function scoreFormHtml(a, s) {
+  const rubric = rubricForTrack(a.track);
+  const maxTotal = rubric.reduce((x,c)=>x+c.max,0);
+  const currentTotal = Number(s.academic||0)+Number(s.character||0)+Number(s.essay||0)+Number(s.need||0);
+  const agg = aggregateRecScores(a);
+  const charRubric = rubric.find(c => c.key === "character");
+  const suggestedChar = agg && charRubric ? Math.round(agg.avgPct / 100 * charRubric.max) : null;
+  return `
   <div class="card p-5" style="border:1.5px solid var(--clr-gold);background:linear-gradient(to bottom,#fffef8,#fff);">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-      ${
-
-        rubric.map(c => {const suggestion = (c.key === "character" && suggestedChar !== null) ? `<button type="button" onclick="applySuggestion(${suggestedChar})" class="text-[10px] text-[var(--clr-sage)] underline hover:text-[var(--clr-forest)] ml-1" title="Auto-calculated from recommender responses">suggest ${suggestedChar}</button>` : "";return `<div>
+      ${rubric.map(c => {
+        const suggestion = (c.key === "character" && suggestedChar !== null)
+          ? `<button type="button" onclick="applySuggestion(${suggestedChar})" class="text-[10px] text-[var(--clr-sage)] underline hover:text-[var(--clr-forest)] ml-1" title="Auto-calculated from recommender responses">suggest ${suggestedChar}</button>` : "";
+        return `<div>
         <label class="flex items-baseline justify-between mb-1">
-          <span class="text-xs font-bold uppercase tracking-wide" style="color:var(--clr-forest);">${
-            c.label}</span>
+          <span class="text-xs font-bold uppercase tracking-wide" style="color:var(--clr-forest);">${c.label}</span>
           <span class="text-[10px] text-gray-400">of ${c.max}${suggestion}</span>
         </label>
-        <input type="number" min="0" max="${
-            c.max}" value="${s[c.key] ?? ""}" data-score="${c.key}" data-max="${c.max}" class="form-input score-input" onchange="updateTotal()" oninput="updateTotal()">
+        <input type="number" min="0" max="${c.max}" value="${s[c.key]??""}" data-score="${c.key}" data-max="${c.max}" class="form-input score-input" onchange="updateTotal()" oninput="updateTotal()">
         <p class="text-[11px] text-gray-500 mt-1 leading-snug">${c.desc}</p>
-      </div>`;}).join("")}
+      </div>`;
+      }).join("")}
     </div>
 
     <div class="flex flex-wrap items-end gap-4 mb-4 pt-4 border-t border-amber-200">
       <div class="flex-1 min-w-[200px]">
         <label class="section-label block mb-1">Recommendation</label>
         <select id="rec_recommendation" class="form-input">
-          ${
-
-
-
-
-
-        ["Pending", "Approve", "Conditional", "Deny"].map(x => `<option ${s.recommendation === x ? "selected" : ""}>${x}</option>`).join("")}
+          ${["Pending","Approve","Conditional","Deny"].map(x=>`<option ${s.recommendation===x?"selected":""}>${x}</option>`).join("")}
         </select>
       </div>
       <div class="text-right">
         <div class="section-label">Total Score</div>
-        <div class="mt-1"><span id="scoreTotal" class="text-3xl font-bold" style="color:var(--clr-forest);">${
-
-
-
-        currentTotal}</span>
+        <div class="mt-1"><span id="scoreTotal" class="text-3xl font-bold" style="color:var(--clr-forest);">${currentTotal}</span>
           <span class="text-gray-400 text-lg">/ ${maxTotal}</span></div>
       </div>
     </div>
 
     <label class="section-label block mb-2">Committee Notes <span class="text-gray-400 normal-case tracking-normal text-[11px]">(private)</span></label>
-    <textarea id="rec_notes" class="form-input" rows="3" placeholder="Private notes visible only to the Scholarship Committee…">${
-
-
-
-        escapeHtml(s.notes || "")}</textarea>
+    <textarea id="rec_notes" class="form-input" rows="3" placeholder="Private notes visible only to the Scholarship Committee…">${escapeHtml(s.notes||"")}</textarea>
     <div class="flex items-center justify-between mt-4">
-      <p class="text-[11px] text-gray-500">${
-        s.timestamp ? "Last saved " + new Date(s.timestamp).toLocaleString() : "Not yet scored"}</p>
+      <p class="text-[11px] text-gray-500">${s.timestamp ? "Last saved " + new Date(s.timestamp).toLocaleString() : "Not yet scored"}</p>
       <button onclick='saveScore(${JSON.stringify(a.studentId)}, ${JSON.stringify(a.studentName)}, ${JSON.stringify(a.track)})' class="btn-primary text-sm">Save Evaluation</button>
     </div>
-  </div>`
+  </div>`;
+}
 
-        ;
+// ═══════════════════════════════════════════════════════════════
+// AUTO-SCORING for recommender responses
+// Normalized to 0–100 per track; weights reflect the PDF rubrics.
+// ═══════════════════════════════════════════════════════════════
+const REC_SCORING = {
+  "Budding Scholar": {
+    maxRaw: 18,
+    fields: {
+      "t_social":  { "Consistently":3, "Emerging (Sometimes)":2, "Needs Support":1 },
+      "t_emotion": { "Consistently":3, "Emerging (Sometimes)":2, "Needs Support":1 },
+      "t_norms":   { "Consistently":3, "Emerging (Sometimes)":2, "Needs Support":1 },
+      "t_effort":  { "Consistently":3, "Emerging (Sometimes)":2, "Needs Support":1 },
+      "r_family":  { "Yes, supportive":3, "Inconsistent":2, "No / Disengaged":0 },
+      "r_overall": {
+        "Recommended (positive addition to the class)":3,
+        "Conditional (needs specific behavioral goals)":2,
+        "Not Recommended (significant concerns)":0
+      }
     }
-
-    // ═══════════════════════════════════════════════════════════════
-    // AUTO-SCORING for recommender responses
-    // Normalized to 0–100 per track; weights reflect the PDF rubrics.
-    // ═══════════════════════════════════════════════════════════════
-    const REC_SCORING = {
-        "Budding Scholar": {
-            maxRaw: 18,
-            fields: {
-                "t_social": {
-                    "Consistently": 3,
-                    "Emerging (Sometimes)": 2,
-                    "Needs Support": 1
-                },
-                "t_emotion": {
-                    "Consistently": 3,
-                    "Emerging (Sometimes)": 2,
-                    "Needs Support": 1
-                },
-                "t_norms": {
-                    "Consistently": 3,
-                    "Emerging (Sometimes)": 2,
-                    "Needs Support": 1
-                },
-                "t_effort": {
-                    "Consistently": 3,
-                    "Emerging (Sometimes)": 2,
-                    "Needs Support": 1
-                },
-                "r_family": {
-                    "Yes, supportive": 3,
-                    "Inconsistent": 2,
-                    "No / Disengaged": 0
-                },
-                "r_overall": {
-                    "Recommended (positive addition to the class)": 3,
-                    "Conditional (needs specific behavioral goals)": 2,
-                    "Not Recommended (significant concerns)": 0
-                }
-            }
-        },
-        "Junior Innovator": {
-            maxRaw: 21,
-            fields: {
-                "t_responsibility": {
-                    "Consistently": 3,
-                    "Sometimes": 2,
-                    "Rarely": 1
-                },
-                "t_kindness": {
-                    "Consistently": 3,
-                    "Sometimes": 2,
-                    "Rarely": 1
-                },
-                "t_resilience": {
-                    "Consistently": 3,
-                    "Sometimes": 2,
-                    "Rarely": 1
-                },
-                "t_selfcontrol": {
-                    "Consistently": 3,
-                    "Sometimes": 2,
-                    "Rarely": 1
-                },
-                "r_infractions": {
-                    "No": 3,
-                    "Yes": 0
-                },
-                "r_extramile": {
-                    "Yes, frequently": 3,
-                    "Occasionally": 2,
-                    "No, they generally stick to their own tasks": 1
-                },
-                "r_endorsement": {
-                    "Yes, I support this": 3,
-                    "Yes, with some hesitation": 2,
-                    "No": 0
-                }
-            }
-        },
-        "Future Leader": {
-            maxRaw: 27,
-            fields: {
-                "t_integrity": {
-                    "Exceptional (Top 10%)": 4,
-                    "Good (Top 25%)": 3,
-                    "Average": 2,
-                    "Below Average": 1,
-                    "No Basis": null
-                },
-                "t_resilience": {
-                    "Exceptional (Top 10%)": 4,
-                    "Good (Top 25%)": 3,
-                    "Average": 2,
-                    "Below Average": 1,
-                    "No Basis": null
-                },
-                "t_leadership": {
-                    "Exceptional (Top 10%)": 4,
-                    "Good (Top 25%)": 3,
-                    "Average": 2,
-                    "Below Average": 1,
-                    "No Basis": null
-                },
-                "t_respect": {
-                    "Exceptional (Top 10%)": 4,
-                    "Good (Top 25%)": 3,
-                    "Average": 2,
-                    "Below Average": 1,
-                    "No Basis": null
-                },
-                "t_service": {
-                    "Exceptional (Top 10%)": 4,
-                    "Good (Top 25%)": 3,
-                    "Average": 2,
-                    "Below Average": 1,
-                    "No Basis": null
-                },
-                "r_obligations": {
-                    "Yes": 3,
-                    "Usually": 2,
-                    "No": 1
-                },
-                "r_overall": {
-                    "I enthusiastically recommend (One of my top students)": 4,
-                    "I strongly recommend": 3,
-                    "I recommend": 2,
-                    "I recommend with reservation": 1
-                }
-            }
-        }
-    };
-
-    function scoreRecommendation(track, responses) {
-        const cfg = REC_SCORING[track];
-        if (!cfg || !responses)
-            return null;
-        let earned = 0,
-            possible = 0,
-            scored = 0,
-            skipped = 0;
-        const breakdown = [];
-        for (const key in cfg.fields) {
-            const ans = responses[key];
-            if (ans === undefined || ans === null || ans === "")
-                continue;
-            const map = cfg.fields[key];
-            const pts = map[ans];
-            if (pts === null) {
-                skipped++;
-                breakdown.push({
-                    key,
-                    ans,
-                    pts: "—"
-                });
-                continue;
-            } // "No Basis" → exclude
-            const maxForField = Math.max(...Object.values(map).filter(v => v !== null));
-            if (typeof pts === "number") {
-                earned += pts;
-                possible += maxForField;
-                scored++;
-                breakdown.push({
-                    key,
-                    ans,
-                    pts,
-                    max: maxForField
-                });
-            }
-        }
-        if (!possible)
-            return null;
-        const pct = (earned / possible) * 100;
-        return {
-            earned,
-            possible,
-            pct: Math.round(pct),
-            scored,
-            skipped,
-            breakdown
-        };
+  },
+  "Junior Innovator": {
+    maxRaw: 21,
+    fields: {
+      "t_responsibility": { "Consistently":3, "Sometimes":2, "Rarely":1 },
+      "t_kindness":       { "Consistently":3, "Sometimes":2, "Rarely":1 },
+      "t_resilience":     { "Consistently":3, "Sometimes":2, "Rarely":1 },
+      "t_selfcontrol":    { "Consistently":3, "Sometimes":2, "Rarely":1 },
+      "r_infractions":    { "No":3, "Yes":0 },
+      "r_extramile":      { "Yes, frequently":3, "Occasionally":2, "No, they generally stick to their own tasks":1 },
+      "r_endorsement":    { "Yes, I support this":3, "Yes, with some hesitation":2, "No":0 }
     }
-
-    // Aggregate all submitted recs for an application
-    function aggregateRecScores(app) {
-        const submitted = (app.recommenders || []).filter(r => r.status === "Submitted" && r.responses);
-        if (!submitted.length)
-            return null;
-        const scores = submitted.map(r => scoreRecommendation(app.track, r.responses)).filter(Boolean);
-        if (!scores.length)
-            return null;
-        const avgPct = Math.round(scores.reduce((s, x) => s + x.pct, 0) / scores.length);
-        return {
-            avgPct,
-            count: scores.length,
-            individual: scores
-        };
+  },
+  "Future Leader": {
+    maxRaw: 27,
+    fields: {
+      "t_integrity":  { "Exceptional (Top 10%)":4, "Good (Top 25%)":3, "Average":2, "Below Average":1, "No Basis":null },
+      "t_resilience": { "Exceptional (Top 10%)":4, "Good (Top 25%)":3, "Average":2, "Below Average":1, "No Basis":null },
+      "t_leadership": { "Exceptional (Top 10%)":4, "Good (Top 25%)":3, "Average":2, "Below Average":1, "No Basis":null },
+      "t_respect":    { "Exceptional (Top 10%)":4, "Good (Top 25%)":3, "Average":2, "Below Average":1, "No Basis":null },
+      "t_service":    { "Exceptional (Top 10%)":4, "Good (Top 25%)":3, "Average":2, "Below Average":1, "No Basis":null },
+      "r_obligations":{ "Yes":3, "Usually":2, "No":1 },
+      "r_overall":    {
+        "I enthusiastically recommend (One of my top students)":4,
+        "I strongly recommend":3,
+        "I recommend":2,
+        "I recommend with reservation":1
+      }
     }
+  }
+};
 
-    function scoreBadge(pct) {
-        const color = pct >= 85 ? "emerald" : pct >= 70 ? "amber" : pct >= 50 ? "orange" : "rose";
-        const bg = pct >= 85 ? "#d1fae5" : pct >= 70 ? "#fef3c7" : pct >= 50 ? "#ffedd5" : "#ffe4e6";
-        const fg = pct >= 85 ? "#065f46" : pct >= 70 ? "#8a6a15" : pct >= 50 ? "#9a3412" : "#9f1239";
-        return `<span class="chip" style="background:${bg};color:${fg};">● ${pct}/100</span>`;
+function scoreRecommendation(track, responses) {
+  const cfg = REC_SCORING[track];
+  if (!cfg || !responses) return null;
+  let earned = 0, possible = 0, scored = 0, skipped = 0;
+  const breakdown = [];
+  for (const key in cfg.fields) {
+    const ans = responses[key];
+    if (ans === undefined || ans === null || ans === "") continue;
+    const map = cfg.fields[key];
+    const pts = map[ans];
+    if (pts === null) { skipped++; breakdown.push({ key, ans, pts:"—" }); continue; }  // "No Basis" → exclude
+    const maxForField = Math.max(...Object.values(map).filter(v => v !== null));
+    if (typeof pts === "number") {
+      earned += pts; possible += maxForField; scored++;
+      breakdown.push({ key, ans, pts, max: maxForField });
     }
+  }
+  if (!possible) return null;
+  const pct = (earned / possible) * 100;
+  return { earned, possible, pct: Math.round(pct), scored, skipped, breakdown };
+}
 
-    function rubricForTrack(track) {
-        // 100-point rubric per track
-        if (track === "Budding Scholar")
-            return [
-            {
-                key: "academic",
-                max: 20,
-                label: "Readiness",
-                desc: "Age-appropriate readiness"
-            },
-            {
-                key: "character",
-                max: 40,
-                label: "Citizenship",
-                desc: "Social/emotional, classroom norms"
-            },
-            {
-                key: "essay",
-                max: 20,
-                label: "Family Fit",
-                desc: "Family partnership & support"
-            },
-            {
-                key: "need",
-                max: 20,
-                label: "Financial Need",
-                desc: "Demonstrated need"
-            }
-            ];
-        if (track === "Junior Innovator")
-            return [
-            {
-                key: "academic",
-                max: 25,
-                label: "Academic",
-                desc: "Academic progress & curiosity"
-            },
-            {
-                key: "character",
-                max: 30,
-                label: "Grit & Citizenship",
-                desc: "Teacher assessment traits"
-            },
-            {
-                key: "essay",
-                max: 25,
-                label: "Parent Essay",
-                desc: "Parent essay clarity & fit"
-            },
-            {
-                key: "need",
-                max: 20,
-                label: "Financial Need",
-                desc: "Demonstrated need"
-            }
-            ];
-        return [
-        {
-            key: "academic",
-            max: 25,
-            label: "Academic",
-            desc: "Transcript / performance"
-        },
-        {
-            key: "character",
-            max: 25,
-            label: "Character",
-            desc: "Recommender ratings"
-        },
-        {
-            key: "essay",
-            max: 30,
-            label: "Student Essay",
-            desc: "Essay depth, voice, maturity"
-        },
-        {
-            key: "need",
-            max: 20,
-            label: "Financial Need",
-            desc: "Demonstrated need"
-        }
-        ];
+// Aggregate all submitted recs for an application
+function aggregateRecScores(app) {
+  const submitted = (app.recommenders||[]).filter(r => r.status === "Submitted" && r.responses);
+  if (!submitted.length) return null;
+  const scores = submitted.map(r => scoreRecommendation(app.track, r.responses)).filter(Boolean);
+  if (!scores.length) return null;
+  const avgPct = Math.round(scores.reduce((s,x) => s + x.pct, 0) / scores.length);
+  return { avgPct, count: scores.length, individual: scores };
+}
+
+function scoreBadge(pct) {
+  const color = pct >= 85 ? "emerald" : pct >= 70 ? "amber" : pct >= 50 ? "orange" : "rose";
+  const bg    = pct >= 85 ? "#d1fae5" : pct >= 70 ? "#fef3c7" : pct >= 50 ? "#ffedd5" : "#ffe4e6";
+  const fg    = pct >= 85 ? "#065f46" : pct >= 70 ? "#8a6a15" : pct >= 50 ? "#9a3412" : "#9f1239";
+  return `<span class="chip" style="background:${bg};color:${fg};">● ${pct}/100</span>`;
+}
+
+function rubricForTrack(track) {
+  // 100-point rubric per track
+  if (track === "Budding Scholar") return [
+    {key:"academic",   max:20, label:"Readiness",    desc:"Age-appropriate readiness"},
+    {key:"character",  max:40, label:"Citizenship",  desc:"Social/emotional, classroom norms"},
+    {key:"essay",      max:20, label:"Family Fit",   desc:"Family partnership & support"},
+    {key:"need",       max:20, label:"Financial Need", desc:"Demonstrated need"}
+  ];
+  if (track === "Junior Innovator") return [
+    {key:"academic",   max:25, label:"Academic",     desc:"Academic progress & curiosity"},
+    {key:"character",  max:30, label:"Grit & Citizenship", desc:"Teacher assessment traits"},
+    {key:"essay",      max:25, label:"Parent Essay", desc:"Parent essay clarity & fit"},
+    {key:"need",       max:20, label:"Financial Need", desc:"Demonstrated need"}
+  ];
+  return [
+    {key:"academic",   max:25, label:"Academic",     desc:"Transcript / performance"},
+    {key:"character",  max:25, label:"Character",    desc:"Recommender ratings"},
+    {key:"essay",      max:30, label:"Student Essay",desc:"Essay depth, voice, maturity"},
+    {key:"need",       max:20, label:"Financial Need", desc:"Demonstrated need"}
+  ];
+}
+
+function updateTotal() {
+  const inputs = document.querySelectorAll("[data-score]");
+  let t = 0; inputs.forEach(i => t += Number(i.value||0));
+  document.getElementById("scoreTotal").textContent = t;
+}
+
+function applySuggestion(val) {
+  const input = document.querySelector('[data-score="character"]');
+  if (!input) return;
+  input.value = val;
+  updateTotal();
+  input.focus();
+}
+
+// Detailed breakdown view for a submitted recommendation (with auto-score)
+function viewRecFromApp(studentId, teacherEmail) {
+  const a = applications.find(x => String(x.studentId) === String(studentId));
+  if (!a) return;
+  const r = (a.recommenders||[]).find(x => (x.teacherEmail||"").toLowerCase() === String(teacherEmail).toLowerCase());
+  if (!r) return;
+  const auto = scoreRecommendation(a.track, r.responses || {});
+  const resp = r.responses || {};
+
+  // Group keys nicely
+  const pretty = k => k.replace(/^t_/,"Trait · ").replace(/^r_/,"").replace(/^ta_/,"").replace(/_/g," ").replace(/\b\w/g, c=>c.toUpperCase());
+
+  const rowsHtml = Object.keys(resp).filter(k => !k.startsWith("_")).map(k => {
+    const ans = resp[k];
+    let pts = "";
+    if (auto) {
+      const f = auto.breakdown.find(b => b.key === k);
+      if (f) pts = f.pts === "—" ? `<span class="text-gray-400 text-xs">excluded (No Basis)</span>` : `<strong style="color:var(--clr-forest);">${f.pts}/${f.max}</strong>`;
     }
-
-    function updateTotal() {
-        const inputs = document.querySelectorAll("[data-score]");
-        let t = 0;
-        inputs.forEach(i => t += Number(i.value || 0));
-        document.getElementById("scoreTotal").textContent = t;
-    }
-
-    function applySuggestion(val) {
-        const input = document.querySelector('[data-score="character"]');
-        if (!input)
-            return;
-        input.value = val;
-        updateTotal();
-        input.focus();
-    }
-
-    // Detailed breakdown view for a submitted recommendation (with auto-score)
-    function viewRecFromApp(studentId, teacherEmail) {
-        const a = applications.find(x => String(x.studentId) === String(studentId));
-        if (!a)
-            return;
-        const r = (a.recommenders || []).find(x => (x.teacherEmail || "").toLowerCase() === String(teacherEmail).toLowerCase());
-        if (!r)
-            return;
-        const auto = scoreRecommendation(a.track, r.responses || {});
-        const resp = r.responses || {};
-
-        // Group keys nicely
-        const pretty = k => k.replace(/^t_/, "Trait · ").replace(/^r_/, "").replace(/^ta_/, "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-
-        const rowsHtml = Object.keys(resp).filter(k => !k.startsWith("_")).map(k => {
-            const ans = resp[k];
-            let pts = "";
-            if (auto) {
-                const f = auto.breakdown.find(b => b.key === k);
-                if (f)
-                    pts = f.pts === "—" ? `<span class="text-gray-400 text-xs">excluded (No Basis)</span>` : `<strong style="color:var(--clr-forest);">${f.pts}/${f.max}</strong>`;
-            }
-            return `<tr class="border-b border-gray-100">
+    return `<tr class="border-b border-gray-100">
       <td class="py-2 pr-4 align-top text-xs text-gray-600" style="width:35%;">${escapeHtml(pretty(k))}</td>
       <td class="py-2 pr-4 align-top text-sm">${escapeHtml(String(ans))}</td>
       <td class="py-2 align-top text-right text-sm" style="width:110px;">${pts}</td>
-    </tr>`
-            ;
-        }).join("");
+    </tr>`;
+  }).join("");
 
-        const header = auto
-        ? `<div class="card p-4 mb-4 flex items-center justify-between" style="background:linear-gradient(to right,#fffef8,#f5ecd0);border:1px solid var(--clr-gold);">
+  const header = auto
+    ? `<div class="card p-4 mb-4 flex items-center justify-between" style="background:linear-gradient(to right,#fffef8,#f5ecd0);border:1px solid var(--clr-gold);">
          <div>
            <div class="section-label">Auto-Score</div>
-           <div class="text-xs text-gray-600 mt-1">${
-
-        auto.scored} rated item${auto.scored > 1 ? 's' : ''}${auto.skipped ? `, ${auto.skipped} "No Basis" excluded` : ""}</div>
+           <div class="text-xs text-gray-600 mt-1">${auto.scored} rated item${auto.scored>1?'s':''}${auto.skipped?`, ${auto.skipped} "No Basis" excluded`:""}</div>
          </div>
          <div class="text-right">
-           <div class="text-3xl font-bold" style="color:var(--clr-forest);">${
-
-        auto.pct}<span class="text-base text-gray-400">/100</span></div>
+           <div class="text-3xl font-bold" style="color:var(--clr-forest);">${auto.pct}<span class="text-base text-gray-400">/100</span></div>
            <div class="text-xs text-gray-500">${auto.earned} of ${auto.possible} points</div>
          </div>
-       </div>`
+       </div>` : "";
 
-        : "";
-
-        document.getElementById("modalTitle").textContent = "Recommendation — " + a.studentName;
-        document.getElementById("modalSub").textContent = `${r.teacherName} (${r.teacherEmail}) · ${a.track}`;
-        document.getElementById("modalBody").innerHTML = header +
-        `<table class="w-full text-sm"><thead><tr class="text-xs text-gray-500 uppercase tracking-wide">
+  document.getElementById("modalTitle").textContent = "Recommendation — " + a.studentName;
+  document.getElementById("modalSub").textContent = `${r.teacherName} (${r.teacherEmail}) · ${a.track}`;
+  document.getElementById("modalBody").innerHTML = header +
+    `<table class="w-full text-sm"><thead><tr class="text-xs text-gray-500 uppercase tracking-wide">
        <th class="text-left pb-2">Question</th><th class="text-left pb-2">Response</th><th class="text-right pb-2">Score</th>
-     </tr></thead><tbody>${
-        rowsHtml || '<tr><td colspan="3" class="text-gray-500 py-3">No responses recorded.</td></tr>'}</tbody></table>
+     </tr></thead><tbody>${rowsHtml || '<tr><td colspan="3" class="text-gray-500 py-3">No responses recorded.</td></tr>'}</tbody></table>
      <div class="mt-5 flex justify-end">
-       <button onclick='openModal(${
-        JSON.stringify(studentId)})' class="btn-ghost text-sm">← Back to application</button>
-     </div>`
-        ;
-        document.getElementById("modal").classList.remove("hidden");
-    }
+       <button onclick='openModal(${JSON.stringify(studentId)})' class="btn-ghost text-sm">← Back to application</button>
+     </div>`;
+  document.getElementById("modal").classList.remove("hidden");
+}
 
-    async function saveScore(studentId, studentName, track) {
-        const payload = {
-            action: "scoreApplication",
-            token: idToken,
-            studentId,
-            studentName,
-            track,
-            recommendation: document.getElementById("rec_recommendation").value,
-            notes: document.getElementById("rec_notes").value
-        };
-        document.querySelectorAll("[data-score]").forEach(i => payload[i.dataset.score] = Number(i.value || 0));
-        const r = await callBackend(payload);
-        if (r.status === "success") {
-            alert("Saved. Total: " + r.total);
-            await loadApplications();
-            openModal(studentId);
-        } else
-            alert(r.message || "Failed.");
-    }
+async function saveScore(studentId, studentName, track) {
+  const payload = {
+    action:"scoreApplication", token: idToken,
+    studentId, studentName, track,
+    recommendation: document.getElementById("rec_recommendation").value,
+    notes: document.getElementById("rec_notes").value
+  };
+  document.querySelectorAll("[data-score]").forEach(i => payload[i.dataset.score] = Number(i.value||0));
+  const r = await callBackend(payload);
+  if (r.status === "success") {
+    alert("Saved. Total: " + r.total);
+    await loadApplications();
+    openModal(studentId);
+  } else alert(r.message || "Failed.");
+}
 
-    // ── SEND RECOMMENDER LINK FORM ──
-    function showRecForm(studentId) {
-        const wrap = document.getElementById("recFormWrap");
-        wrap.classList.remove("hidden");
-        wrap.innerHTML = `
+// ── SEND RECOMMENDER LINK FORM ──
+function showRecForm(studentId) {
+  const wrap = document.getElementById("recFormWrap");
+  wrap.classList.remove("hidden");
+  wrap.innerHTML = `
     <div class="flex items-start justify-between mb-3">
       <div>
         <h4 class="font-bold text-base" style="color:var(--clr-forest);">Invite Additional Recommender</h4>
@@ -1256,78 +828,45 @@
     <button onclick="addRecRow()" class="btn-ghost text-xs mt-2">+ Add another</button>
     <div class="mt-4 flex justify-end gap-2 pt-3 border-t border-amber-200">
       <button onclick="document.getElementById('recFormWrap').classList.add('hidden')" class="btn-ghost text-sm">Cancel</button>
-      <button onclick="submitRecs('${
+      <button onclick="submitRecs('${studentId}')" class="btn-primary text-sm">✉ Send Secure Links</button>
+    </div>`;
+  addRecRow();
+  wrap.scrollIntoView({ behavior:"smooth", block:"nearest" });
+}
 
+function addRecRow(prefill) {
+  const r = document.createElement("div");
+  r.className = "grid grid-cols-1 md:grid-cols-3 gap-2 mb-2";
+  const v = prefill || {};
+  r.innerHTML = `<input class="form-input text-sm" placeholder="Teacher full name" data-rec="name" value="${escapeHtml(v.name||'')}">
+    <input class="form-input text-sm" placeholder="teacher@school.edu" type="email" data-rec="email" value="${escapeHtml(v.email||'')}">
+    <input class="form-input text-sm" placeholder="School / Organization" data-rec="school" value="${escapeHtml(v.school||'')}">`;
+  document.getElementById("recRows").appendChild(r);
+}
 
+async function submitRecs(studentId) {
+  const rows = document.getElementById("recRows").querySelectorAll("div");
+  const recommenders = [];
+  rows.forEach(row => {
+    const rec = {};
+    row.querySelectorAll("[data-rec]").forEach(i => rec[i.dataset.rec] = i.value.trim());
+    if (rec.email) recommenders.push(rec);
+  });
+  if (!recommenders.length) { alert("Add at least one recommender."); return; }
+  const r = await callBackend({
+    action:"sendRecommenderLinks", token: idToken,
+    studentId, recommenders, recommenderUrl: RECOMMENDER_URL
+  });
+  if (r.status !== "success") { alert(r.message || "Failed."); return; }
+  alert("Sent " + r.results.filter(x=>x.status==="sent").length + " invitation(s).");
+  await loadApplications(); openModal(studentId);
+}
 
+function closeModal() { document.getElementById("modal").classList.add("hidden"); }
 
-
-
-
-
-
-        studentId}')" class="btn-primary text-sm">✉ Send Secure Links</button>
-    </div>`
-        ;
-        addRecRow();
-        wrap.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest"
-        });
-    }
-
-    function addRecRow(prefill) {
-        const r = document.createElement("div");
-        r.className = "grid grid-cols-1 md:grid-cols-3 gap-2 mb-2";
-        const v = prefill || {};
-        r.innerHTML = `<input class="form-input text-sm" placeholder="Teacher full name" data-rec="name" value="${escapeHtml(v.name || '')}">
-    <input class="form-input text-sm" placeholder="teacher@school.edu" type="email" data-rec="email" value="${escapeHtml(v.email || '')}">
-    <input class="form-input text-sm" placeholder="School / Organization" data-rec="school" value="${escapeHtml(v.school || '')}">`;
-        document.getElementById("recRows").appendChild(r);
-    }
-
-    async function submitRecs(studentId) {
-        const rows = document.getElementById("recRows").querySelectorAll("div");
-        const recommenders = [];
-        rows.forEach(row => {
-            const rec = {};
-            row.querySelectorAll("[data-rec]").forEach(i => rec[i.dataset.rec] = i.value.trim());
-            if (rec.email)
-                recommenders.push(rec);
-        });
-        if (!recommenders.length) {
-            alert("Add at least one recommender.");
-            return;
-        }
-        const r = await callBackend({
-            action: "sendRecommenderLinks",
-            token: idToken,
-            studentId,
-            recommenders,
-            recommenderUrl: RECOMMENDER_URL
-        });
-        if (r.status !== "success") {
-            alert(r.message || "Failed.");
-            return;
-        }
-        alert("Sent " + r.results.filter(x => x.status === "sent").length + " invitation(s).");
-        await loadApplications();
-        openModal(studentId);
-    }
-
-    function closeModal() {
-        document.getElementById("modal").classList.add("hidden");
-    }
-
-    function escapeHtml(s) {
-        return String(s ?? "").replace(/[&<>"']/g, c => ({
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#39;"
-        }[c]));
-    }
-    </script>
+function escapeHtml(s) {
+  return String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+</script>
 </body>
 </html>
