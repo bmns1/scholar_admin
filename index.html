@@ -253,18 +253,21 @@
 
     <!-- ────────── DASHBOARD ────────── -->
     <section id="dashboardView" class="hidden">
-        <header class="bg-white border-b border-gray-200 sticky top-0 z-20">
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-20" style="box-shadow:0 1px 3px rgba(0,0,0,.03);">
             <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                <div>
-                    <h1 class="text-xl" style="color:var(--clr-forest);">SVA Scholarship — Admin</h1>
-                    <p class="text-xs text-gray-500" id="adminEmail"></p>
-                </div>
                 <div class="flex items-center gap-3">
+                    <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--clr-forest),var(--clr-sage));display:flex;align-items:center;justify-content:center;color:#c9a84c;font-family:'Lora',serif;font-weight:700;font-size:18px;">SVA</div>
+                    <div>
+                        <h1 class="text-xl leading-tight" style="color:var(--clr-forest);">Scholarship Committee Portal</h1>
+                        <p class="text-xs text-gray-500" id="adminEmail"></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
                     <button onclick="loadApplications()" class="btn-ghost text-sm">↻ Refresh</button>
                     <button onclick="signOut()" class="btn-ghost text-sm">Sign out</button>
                 </div>
             </div>
-            <div class="max-w-7xl mx-auto px-6 flex gap-2">
+            <div class="max-w-7xl mx-auto px-6 flex gap-1">
                 <div class="tab active" onclick="switchTab('apps',this)">Applications</div>
                 <div class="tab" onclick="switchTab('recs',this)">Recommendations</div>
             </div>
@@ -608,14 +611,16 @@
         });
 
         const initials = s => (s || "?").toString().trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
-        const renderRec = (r, isNominated) => `
+        const renderRec = (r, isNominated) => {
+            const auto = !isNominated && r.status === 'Submitted' && r.responses ? scoreRecommendation(a.track, r.responses) : null;
+            return `
     <div class="rec-row ${isNominated ? 'nominated' : ''}">
-      <div class="flex items-center gap-3 min-w-0">
+      <div class="flex items-center gap-3 min-w-0 flex-1">
         <div class="rec-avatar">${
-        initials(r.teacherName || r.name)}</div>
-        <div class="min-w-0">
+            initials(r.teacherName || r.name)}</div>
+        <div class="min-w-0 flex-1">
           <div class="font-semibold truncate">${
-        escapeHtml(r.teacherName || r.name || "(unnamed)")}</div>
+            escapeHtml(r.teacherName || r.name || "(unnamed)")}</div>
           <div class="text-xs text-gray-500 truncate">${escapeHtml(r.teacherEmail || r.email || "")}${r.school ? ` · ${escapeHtml(r.school)}` : ""}</div>
         </div>
       </div>
@@ -623,12 +628,15 @@
         ${
 
 
-        isNominated ? `<span class="chip chip-nominated">Nominated by parent</span>
-             <button onclick='inviteNominated(${JSON.stringify(a.studentId)}, ${JSON.stringify(r)})' class="btn-gold text-xs">Send Link</button>` : `<span class="chip ${r.status === 'Submitted' ? 'chip-done' : 'chip-sent'}">${r.status === 'Submitted' ? '✓ Submitted' : '⧗ ' + (r.status || 'Sent')}</span>`}
+            auto ? scoreBadge(auto.pct) : ""}
+        ${isNominated ? `<span class="chip chip-nominated">Nominated by parent</span>
+             <button onclick='inviteNominated(${JSON.stringify(a.studentId)}, ${JSON.stringify(r)})' class="btn-gold text-xs">Send Link</button>` : `<span class="chip ${r.status === 'Submitted' ? 'chip-done' : 'chip-sent'}">${r.status === 'Submitted' ? '✓ Submitted' : '⧗ ' + (r.status || 'Sent')}</span>
+             ${r.status === 'Submitted' && r.responses ? `<button onclick='viewRecFromApp(${JSON.stringify(a.studentId)}, ${JSON.stringify(r.teacherEmail || '')})' class="btn-ghost text-xs">View</button>` : ""}`}
       </div>
     </div>`
 
-        ;
+            ;
+        };
 
         const allRecsHtml =
         (nominated.length || invited.length)
@@ -689,6 +697,20 @@
       ${
 
         allRecsHtml}
+      ${(() => {const agg = aggregateRecScores(a);if (!agg)return "";return `<div class="mt-3 p-3 rounded-lg flex items-center justify-between" style="background:linear-gradient(to right,#fffef8,#f5ecd0);border:1px solid var(--clr-gold);">
+          <div>
+            <div class="section-label">Auto-Scored Average</div>
+            <div class="text-xs text-gray-600 mt-1">Computed from ${
+
+            agg.count} submitted recommendation${agg.count > 1 ? 's' : ''} using the ${escapeHtml(a.track)} rubric.</div>
+          </div>
+          <div class="text-right">
+            <div class="text-3xl font-bold" style="color:var(--clr-forest);">${
+
+            agg.avgPct}<span class="text-base text-gray-400">/100</span></div>
+          </div>
+        </div>`
+            ;})()}
     </div>
 
     <div id="recFormWrap" class="hidden card p-4 mb-6" style="background:var(--clr-gold-light);border:1px solid var(--clr-gold);"></div>
@@ -771,21 +793,24 @@
         const rubric = rubricForTrack(a.track);
         const maxTotal = rubric.reduce((x, c) => x + c.max, 0);
         const currentTotal = Number(s.academic || 0) + Number(s.character || 0) + Number(s.essay || 0) + Number(s.need || 0);
+        const agg = aggregateRecScores(a);
+        const charRubric = rubric.find(c => c.key === "character");
+        const suggestedChar = agg && charRubric ? Math.round(agg.avgPct / 100 * charRubric.max) : null;
         return `
   <div class="card p-5" style="border:1.5px solid var(--clr-gold);background:linear-gradient(to bottom,#fffef8,#fff);">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
       ${
 
-        rubric.map(c => `<div>
+        rubric.map(c => {const suggestion = (c.key === "character" && suggestedChar !== null) ? `<button type="button" onclick="applySuggestion(${suggestedChar})" class="text-[10px] text-[var(--clr-sage)] underline hover:text-[var(--clr-forest)] ml-1" title="Auto-calculated from recommender responses">suggest ${suggestedChar}</button>` : "";return `<div>
         <label class="flex items-baseline justify-between mb-1">
           <span class="text-xs font-bold uppercase tracking-wide" style="color:var(--clr-forest);">${
-        c.label}</span>
-          <span class="text-[10px] text-gray-400">of ${c.max}</span>
+            c.label}</span>
+          <span class="text-[10px] text-gray-400">of ${c.max}${suggestion}</span>
         </label>
         <input type="number" min="0" max="${
-        c.max}" value="${s[c.key] ?? ""}" data-score="${c.key}" data-max="${c.max}" class="form-input score-input" onchange="updateTotal()" oninput="updateTotal()">
+            c.max}" value="${s[c.key] ?? ""}" data-score="${c.key}" data-max="${c.max}" class="form-input score-input" onchange="updateTotal()" oninput="updateTotal()">
         <p class="text-[11px] text-gray-500 mt-1 leading-snug">${c.desc}</p>
-      </div>`).join("")}
+      </div>`;}).join("")}
     </div>
 
     <div class="flex flex-wrap items-end gap-4 mb-4 pt-4 border-t border-amber-200">
@@ -826,6 +851,211 @@
   </div>`
 
         ;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // AUTO-SCORING for recommender responses
+    // Normalized to 0–100 per track; weights reflect the PDF rubrics.
+    // ═══════════════════════════════════════════════════════════════
+    const REC_SCORING = {
+        "Budding Scholar": {
+            maxRaw: 18,
+            fields: {
+                "t_social": {
+                    "Consistently": 3,
+                    "Emerging (Sometimes)": 2,
+                    "Needs Support": 1
+                },
+                "t_emotion": {
+                    "Consistently": 3,
+                    "Emerging (Sometimes)": 2,
+                    "Needs Support": 1
+                },
+                "t_norms": {
+                    "Consistently": 3,
+                    "Emerging (Sometimes)": 2,
+                    "Needs Support": 1
+                },
+                "t_effort": {
+                    "Consistently": 3,
+                    "Emerging (Sometimes)": 2,
+                    "Needs Support": 1
+                },
+                "r_family": {
+                    "Yes, supportive": 3,
+                    "Inconsistent": 2,
+                    "No / Disengaged": 0
+                },
+                "r_overall": {
+                    "Recommended (positive addition to the class)": 3,
+                    "Conditional (needs specific behavioral goals)": 2,
+                    "Not Recommended (significant concerns)": 0
+                }
+            }
+        },
+        "Junior Innovator": {
+            maxRaw: 21,
+            fields: {
+                "t_responsibility": {
+                    "Consistently": 3,
+                    "Sometimes": 2,
+                    "Rarely": 1
+                },
+                "t_kindness": {
+                    "Consistently": 3,
+                    "Sometimes": 2,
+                    "Rarely": 1
+                },
+                "t_resilience": {
+                    "Consistently": 3,
+                    "Sometimes": 2,
+                    "Rarely": 1
+                },
+                "t_selfcontrol": {
+                    "Consistently": 3,
+                    "Sometimes": 2,
+                    "Rarely": 1
+                },
+                "r_infractions": {
+                    "No": 3,
+                    "Yes": 0
+                },
+                "r_extramile": {
+                    "Yes, frequently": 3,
+                    "Occasionally": 2,
+                    "No, they generally stick to their own tasks": 1
+                },
+                "r_endorsement": {
+                    "Yes, I support this": 3,
+                    "Yes, with some hesitation": 2,
+                    "No": 0
+                }
+            }
+        },
+        "Future Leader": {
+            maxRaw: 27,
+            fields: {
+                "t_integrity": {
+                    "Exceptional (Top 10%)": 4,
+                    "Good (Top 25%)": 3,
+                    "Average": 2,
+                    "Below Average": 1,
+                    "No Basis": null
+                },
+                "t_resilience": {
+                    "Exceptional (Top 10%)": 4,
+                    "Good (Top 25%)": 3,
+                    "Average": 2,
+                    "Below Average": 1,
+                    "No Basis": null
+                },
+                "t_leadership": {
+                    "Exceptional (Top 10%)": 4,
+                    "Good (Top 25%)": 3,
+                    "Average": 2,
+                    "Below Average": 1,
+                    "No Basis": null
+                },
+                "t_respect": {
+                    "Exceptional (Top 10%)": 4,
+                    "Good (Top 25%)": 3,
+                    "Average": 2,
+                    "Below Average": 1,
+                    "No Basis": null
+                },
+                "t_service": {
+                    "Exceptional (Top 10%)": 4,
+                    "Good (Top 25%)": 3,
+                    "Average": 2,
+                    "Below Average": 1,
+                    "No Basis": null
+                },
+                "r_obligations": {
+                    "Yes": 3,
+                    "Usually": 2,
+                    "No": 1
+                },
+                "r_overall": {
+                    "I enthusiastically recommend (One of my top students)": 4,
+                    "I strongly recommend": 3,
+                    "I recommend": 2,
+                    "I recommend with reservation": 1
+                }
+            }
+        }
+    };
+
+    function scoreRecommendation(track, responses) {
+        const cfg = REC_SCORING[track];
+        if (!cfg || !responses)
+            return null;
+        let earned = 0,
+            possible = 0,
+            scored = 0,
+            skipped = 0;
+        const breakdown = [];
+        for (const key in cfg.fields) {
+            const ans = responses[key];
+            if (ans === undefined || ans === null || ans === "")
+                continue;
+            const map = cfg.fields[key];
+            const pts = map[ans];
+            if (pts === null) {
+                skipped++;
+                breakdown.push({
+                    key,
+                    ans,
+                    pts: "—"
+                });
+                continue;
+            } // "No Basis" → exclude
+            const maxForField = Math.max(...Object.values(map).filter(v => v !== null));
+            if (typeof pts === "number") {
+                earned += pts;
+                possible += maxForField;
+                scored++;
+                breakdown.push({
+                    key,
+                    ans,
+                    pts,
+                    max: maxForField
+                });
+            }
+        }
+        if (!possible)
+            return null;
+        const pct = (earned / possible) * 100;
+        return {
+            earned,
+            possible,
+            pct: Math.round(pct),
+            scored,
+            skipped,
+            breakdown
+        };
+    }
+
+    // Aggregate all submitted recs for an application
+    function aggregateRecScores(app) {
+        const submitted = (app.recommenders || []).filter(r => r.status === "Submitted" && r.responses);
+        if (!submitted.length)
+            return null;
+        const scores = submitted.map(r => scoreRecommendation(app.track, r.responses)).filter(Boolean);
+        if (!scores.length)
+            return null;
+        const avgPct = Math.round(scores.reduce((s, x) => s + x.pct, 0) / scores.length);
+        return {
+            avgPct,
+            count: scores.length,
+            individual: scores
+        };
+    }
+
+    function scoreBadge(pct) {
+        const color = pct >= 85 ? "emerald" : pct >= 70 ? "amber" : pct >= 50 ? "orange" : "rose";
+        const bg = pct >= 85 ? "#d1fae5" : pct >= 70 ? "#fef3c7" : pct >= 50 ? "#ffedd5" : "#ffe4e6";
+        const fg = pct >= 85 ? "#065f46" : pct >= 70 ? "#8a6a15" : pct >= 50 ? "#9a3412" : "#9f1239";
+        return `<span class="chip" style="background:${bg};color:${fg};">● ${pct}/100</span>`;
     }
 
     function rubricForTrack(track) {
@@ -917,6 +1147,78 @@
         let t = 0;
         inputs.forEach(i => t += Number(i.value || 0));
         document.getElementById("scoreTotal").textContent = t;
+    }
+
+    function applySuggestion(val) {
+        const input = document.querySelector('[data-score="character"]');
+        if (!input)
+            return;
+        input.value = val;
+        updateTotal();
+        input.focus();
+    }
+
+    // Detailed breakdown view for a submitted recommendation (with auto-score)
+    function viewRecFromApp(studentId, teacherEmail) {
+        const a = applications.find(x => String(x.studentId) === String(studentId));
+        if (!a)
+            return;
+        const r = (a.recommenders || []).find(x => (x.teacherEmail || "").toLowerCase() === String(teacherEmail).toLowerCase());
+        if (!r)
+            return;
+        const auto = scoreRecommendation(a.track, r.responses || {});
+        const resp = r.responses || {};
+
+        // Group keys nicely
+        const pretty = k => k.replace(/^t_/, "Trait · ").replace(/^r_/, "").replace(/^ta_/, "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+        const rowsHtml = Object.keys(resp).filter(k => !k.startsWith("_")).map(k => {
+            const ans = resp[k];
+            let pts = "";
+            if (auto) {
+                const f = auto.breakdown.find(b => b.key === k);
+                if (f)
+                    pts = f.pts === "—" ? `<span class="text-gray-400 text-xs">excluded (No Basis)</span>` : `<strong style="color:var(--clr-forest);">${f.pts}/${f.max}</strong>`;
+            }
+            return `<tr class="border-b border-gray-100">
+      <td class="py-2 pr-4 align-top text-xs text-gray-600" style="width:35%;">${escapeHtml(pretty(k))}</td>
+      <td class="py-2 pr-4 align-top text-sm">${escapeHtml(String(ans))}</td>
+      <td class="py-2 align-top text-right text-sm" style="width:110px;">${pts}</td>
+    </tr>`
+            ;
+        }).join("");
+
+        const header = auto
+        ? `<div class="card p-4 mb-4 flex items-center justify-between" style="background:linear-gradient(to right,#fffef8,#f5ecd0);border:1px solid var(--clr-gold);">
+         <div>
+           <div class="section-label">Auto-Score</div>
+           <div class="text-xs text-gray-600 mt-1">${
+
+        auto.scored} rated item${auto.scored > 1 ? 's' : ''}${auto.skipped ? `, ${auto.skipped} "No Basis" excluded` : ""}</div>
+         </div>
+         <div class="text-right">
+           <div class="text-3xl font-bold" style="color:var(--clr-forest);">${
+
+        auto.pct}<span class="text-base text-gray-400">/100</span></div>
+           <div class="text-xs text-gray-500">${auto.earned} of ${auto.possible} points</div>
+         </div>
+       </div>`
+
+        : "";
+
+        document.getElementById("modalTitle").textContent = "Recommendation — " + a.studentName;
+        document.getElementById("modalSub").textContent = `${r.teacherName} (${r.teacherEmail}) · ${a.track}`;
+        document.getElementById("modalBody").innerHTML = header +
+        `<table class="w-full text-sm"><thead><tr class="text-xs text-gray-500 uppercase tracking-wide">
+       <th class="text-left pb-2">Question</th><th class="text-left pb-2">Response</th><th class="text-right pb-2">Score</th>
+     </tr></thead><tbody>${
+        rowsHtml || '<tr><td colspan="3" class="text-gray-500 py-3">No responses recorded.</td></tr>'}</tbody></table>
+     <div class="mt-5 flex justify-end">
+       <button onclick='openModal(${
+        JSON.stringify(studentId)})' class="btn-ghost text-sm">← Back to application</button>
+     </div>`
+        ;
+        document.getElementById("modal").classList.remove("hidden");
     }
 
     async function saveScore(studentId, studentName, track) {
