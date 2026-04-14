@@ -87,11 +87,14 @@
     }
 
     .chip {
-        display: inline-block;
-        padding: 2px 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
         border-radius: 999px;
         font-size: 11px;
         font-weight: 600;
+        letter-spacing: .02em;
     }
 
     .chip-sent {
@@ -109,6 +112,17 @@
         color: #6b6b6b;
     }
 
+    .chip-nominated {
+        background: #eef2f7;
+        color: #334155;
+        border: 1px dashed #94a3b8;
+    }
+
+    .chip-warn {
+        background: #fef2f2;
+        color: #991b1b;
+    }
+
     .track-budding {
         background: #fdf2e9;
         color: #8a4c15;
@@ -122,6 +136,66 @@
     .track-future {
         background: #ecfdf5;
         color: #065f46;
+    }
+
+    .stat-card {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--clr-gold), var(--clr-sage));
+    }
+
+    .rec-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: .75rem 1rem;
+        border-radius: .65rem;
+        background: #fafaf6;
+        border: 1px solid #ece7d8;
+        margin-bottom: .5rem;
+    }
+
+    .rec-row.nominated {
+        background: #fffdf4;
+        border-style: dashed;
+        border-color: var(--clr-gold);
+    }
+
+    .rec-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--clr-forest), var(--clr-sage));
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+
+    .section-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #6b6b6b;
+    }
+
+    .score-input {
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.1rem;
     }
 
     .modal-bg {
@@ -161,13 +235,19 @@
 <body class="min-h-screen">
 
     <!-- ────────── LOGIN ────────── -->
-    <section id="loginView" class="min-h-screen flex items-center justify-center p-4">
-        <div class="card max-w-md w-full p-8 text-center">
-            <div class="inline-block px-4 py-1 rounded-full text-xs font-bold mb-4" style="background:var(--clr-gold-light);color:var(--clr-forest);">ADMIN ACCESS</div>
-            <h1 class="text-2xl mb-2" style="color:var(--clr-forest);">SVA Scholarship Portal</h1>
-            <p class="text-sm text-gray-600 mb-6">Sign in with your authorized admin Google account.</p>
+    <section id="loginView" class="min-h-screen flex items-center justify-center p-4" style="background:radial-gradient(circle at top right, #f5ecd0 0%, var(--clr-cream) 60%);">
+        <div class="card max-w-md w-full p-10 text-center relative overflow-hidden" style="box-shadow:0 20px 60px rgba(26,60,52,.08);">
+            <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--clr-gold),var(--clr-sage),var(--clr-forest));"></div>
+            <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full text-[11px] font-bold mb-5 tracking-widest" style="background:var(--clr-gold-light);color:var(--clr-forest);">
+                <span style="width:6px;height:6px;border-radius:50%;background:var(--clr-gold);display:inline-block;"></span>
+                ADMIN ACCESS
+                    
+            </div>
+            <h1 class="text-3xl mb-1" style="color:var(--clr-forest);letter-spacing:-.01em;">SVA Scholarship</h1>
+            <p class="text-sm mb-8" style="color:var(--clr-sage);font-weight:500;">Committee Review & Evaluation Portal</p>
             <div id="googleBtn" class="flex justify-center"></div>
             <p id="loginError" class="text-red-600 text-sm mt-4 hidden"></p>
+            <p class="text-[11px] text-gray-400 mt-8 pt-6 border-t border-gray-100">Authorized admin accounts only. Unauthorized access is prohibited.</p>
         </div>
     </section>
 
@@ -328,14 +408,42 @@
         const total = applications.length;
         const submitted = applications.filter(a => a.status === "Submitted").length;
         const scored = applications.filter(a => (a.scores || []).length > 0).length;
+        const pendingRecs = applications.reduce((n, a) => n + (a.recommenders || []).filter(r => r.status !== "Submitted").length, 0);
         const byTrack = t => applications.filter(a => a.track === t).length;
-        const html = [
-        ["Total", total],
-        ["Submitted", submitted],
-        ["Scored", scored],
-        ["Budding / Junior / Future", `${byTrack("Budding Scholar")} / ${byTrack("Junior Innovator")} / ${byTrack("Future Leader")}`]
-        ].map(([l, v]) => `<div class="card p-4"><div class="text-xs text-gray-500 uppercase tracking-wide">${l}</div><div class="text-2xl font-bold mt-1" style="color:var(--clr-forest);">${v}</div></div>`).join("");
-        document.getElementById("statsBar").innerHTML = html;
+        const cards = [
+        {
+            label: "Applications",
+            value: total,
+            sub: submitted + " submitted"
+        },
+        {
+            label: "Awaiting Review",
+            value: submitted - scored,
+            sub: scored + " scored"
+        },
+        {
+            label: "Pending Recs",
+            value: pendingRecs,
+            sub: "across all students"
+        },
+        {
+            label: "Budding Scholar",
+            value: byTrack("Budding Scholar"),
+            sub: "K–2"
+        },
+        {
+            label: "Junior / Future",
+            value: byTrack("Junior Innovator") + " / " + byTrack("Future Leader"),
+            sub: "3–5 · 6–8"
+        }
+        ];
+        document.getElementById("statsBar").innerHTML = cards.map(c =>
+        `<div class="card stat-card p-4">
+       <div class="section-label">${c.label}</div>
+       <div class="text-2xl font-bold mt-1" style="color:var(--clr-forest);">${c.value}</div>
+       <div class="text-xs text-gray-500 mt-1">${c.sub}</div>
+     </div>`
+        ).join("");
     }
 
     function trackChip(t) {
@@ -365,19 +473,39 @@
             return;
         }
 
+        const initials = s => (s || "?").toString().trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
         const rows = filtered.map(a => {
-            const recCount = (a.recommenders || []).length;
-            const recDone = (a.recommenders || []).filter(r => r.status === "Submitted").length;
+            const invited = a.recommenders || [];
+            const recCount = invited.length;
+            const recDone = invited.filter(r => r.status === "Submitted").length;
+            const nomCount = [a.teacher1, a.teacher2].filter(t => t && t.email).length;
             const scoreCount = (a.scores || []).length;
             const avg = scoreCount ? (a.scores.reduce((s, x) => s + Number(x.total || 0), 0) / scoreCount).toFixed(1) : "—";
-            return `<tr class="border-t border-gray-100 hover:bg-amber-50/30 cursor-pointer" onclick='openModal(${JSON.stringify(a.studentId)})'>
-      <td class="p-3"><div class="font-semibold">${escapeHtml(a.studentName || "")}</div><div class="text-xs text-gray-500">${escapeHtml(a.studentId || "")}</div></td>
-      <td class="p-3">${escapeHtml(a.grade || "")}</td>
+            const recLabel = recCount > 0
+            ? `<span class="${recDone === recCount ? 'text-emerald-700 font-semibold' : 'text-amber-700'}">${recDone}/${recCount}</span>`
+            : (nomCount > 0 ? `<span class="text-gray-500 italic">${nomCount} nominated</span>` : `<span class="text-gray-400">—</span>`);
+            return `<tr class="border-t border-gray-100 hover:bg-amber-50/40 cursor-pointer transition" onclick='openModal(${JSON.stringify(a.studentId)})'>
+      <td class="p-3">
+        <div class="flex items-center gap-3">
+          <div class="rec-avatar" style="width:32px;height:32px;font-size:11px;">${
+
+            initials(a.studentName)}</div>
+          <div class="min-w-0">
+            <div class="font-semibold truncate">${
+            escapeHtml(a.studentName || "")}</div>
+            <div class="text-xs text-gray-500 font-mono">${escapeHtml(a.studentId || "")}</div>
+          </div>
+        </div>
+      </td>
+      <td class="p-3 text-sm">${
+
+
+            escapeHtml(a.grade || "")}</td>
       <td class="p-3">${trackChip(a.track)}</td>
-      <td class="p-3 text-xs">${escapeHtml(a.parentEmail || "")}</td>
+      <td class="p-3 text-xs text-gray-600 truncate max-w-[180px]">${escapeHtml(a.parentEmail || "")}</td>
       <td class="p-3"><span class="chip ${a.status === 'Submitted' ? 'chip-sent' : 'chip-pending'}">${escapeHtml(a.status || "—")}</span></td>
-      <td class="p-3 text-xs">${recDone}/${recCount}</td>
-      <td class="p-3 text-xs">${scoreCount ? `${avg} <span class="text-gray-400">(${scoreCount})</span>` : "—"}</td>
+      <td class="p-3 text-xs">${recLabel}</td>
+      <td class="p-3 text-sm">${scoreCount ? `<strong>${avg}</strong> <span class="text-gray-400 text-xs">(${scoreCount})</span>` : "<span class='text-gray-400'>—</span>"}</td>
     </tr>`
             ;
         }).join("");
@@ -464,47 +592,110 @@
         `<a href="${escapeHtml(v)}" target="_blank" class="inline-block btn-ghost text-xs mr-2 mb-2">📄 Form ${k}</a>`
         ).join("") || '<span class="text-gray-500 text-sm">No files uploaded.</span>';
 
-        const recs = a.recommenders || [];
-        const recsHtml = recs.length ? recs.map(r => `
-    <div class="flex items-center justify-between py-2 border-b border-gray-100 text-sm">
-      <div><strong>${
-        escapeHtml(r.teacherName || "")}</strong> <span class="text-gray-500">· ${escapeHtml(r.teacherEmail || "")}</span><br>
-        <span class="text-xs text-gray-500">${escapeHtml(r.school || "")}</span></div>
-      <span class="chip ${r.status === 'Submitted' ? 'chip-done' : 'chip-sent'}">${escapeHtml(r.status || "")}</span>
+        // ── Merge parent-nominated teachers (from Applications sheet L2_*) with already-invited recs ──
+        const invited = a.recommenders || [];
+        const invitedEmails = new Set(invited.map(r => (r.teacherEmail || "").toLowerCase().trim()).filter(Boolean));
+        const nominated = [];
+        [a.teacher1, a.teacher2].forEach((t, idx) => {
+            if (!t || !t.email)
+                return;
+            const em = t.email.toLowerCase().trim();
+            if (!invitedEmails.has(em))
+                nominated.push({
+                    ...t,
+                    slot: idx + 1
+                });
+        });
+
+        const initials = s => (s || "?").toString().trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+        const renderRec = (r, isNominated) => `
+    <div class="rec-row ${isNominated ? 'nominated' : ''}">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="rec-avatar">${
+        initials(r.teacherName || r.name)}</div>
+        <div class="min-w-0">
+          <div class="font-semibold truncate">${
+        escapeHtml(r.teacherName || r.name || "(unnamed)")}</div>
+          <div class="text-xs text-gray-500 truncate">${escapeHtml(r.teacherEmail || r.email || "")}${r.school ? ` · ${escapeHtml(r.school)}` : ""}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        ${
+
+
+        isNominated ? `<span class="chip chip-nominated">Nominated by parent</span>
+             <button onclick='inviteNominated(${JSON.stringify(a.studentId)}, ${JSON.stringify(r)})' class="btn-gold text-xs">Send Link</button>` : `<span class="chip ${r.status === 'Submitted' ? 'chip-done' : 'chip-sent'}">${r.status === 'Submitted' ? '✓ Submitted' : '⧗ ' + (r.status || 'Sent')}</span>`}
+      </div>
     </div>`
-        ).join("") : '<p class="text-sm text-gray-500">No recommenders invited yet.</p>';
+
+        ;
+
+        const allRecsHtml =
+        (nominated.length || invited.length)
+        ? (nominated.map(r => renderRec(r, true)).join("") + invited.map(r => renderRec(r, false)).join(""))
+        : '<p class="text-sm text-gray-500 italic">No recommenders nominated or invited yet.</p>';
+
+        const quickInviteBtn = nominated.length >= 2
+        ? `<button onclick='inviteAllNominated(${JSON.stringify(a.studentId)})' class="btn-primary text-xs">✉ Send to All Nominated</button>` : "";
 
         const myScore = (a.scores || []).find(s => (s.scorer || "").toLowerCase() === (currentEmail || "").toLowerCase()) || {};
+        const submittedDate = a.timestamp ? new Date(a.timestamp).toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric"
+        }) : "—";
 
         document.getElementById("modalBody").innerHTML = `
-    <div class="mb-6">
-      <div class="flex items-center gap-2 mb-2">${
-        trackChip(a.track)} <span class="chip chip-sent">${escapeHtml(a.status || "")}</span></div>
-      <p class="text-sm text-gray-600"><strong>Parent:</strong> ${escapeHtml(a.parentEmail || "")} &nbsp;·&nbsp; <strong>Student:</strong> ${escapeHtml(a.studentEmail || "")}</p>
-      <p class="text-sm text-gray-600 mt-1"><strong>Submitted:</strong> ${a.timestamp ? new Date(a.timestamp).toLocaleString() : "—"}</p>
-      ${a.folderLink ? `<a href="${escapeHtml(a.folderLink)}" target="_blank" class="btn-gold text-xs inline-block mt-3">Open Drive Folder ↗</a>` : ""}
+    <div class="mb-6 pb-5 border-b border-gray-200">
+      <div class="flex flex-wrap items-center gap-2 mb-3">${
+        trackChip(a.track)} <span class="chip chip-sent">${escapeHtml(a.status || "")}</span>
+        <span class="text-xs text-gray-400 ml-auto">Submitted ${submittedDate}</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+        <div><div class="section-label">Parent</div><div class="mt-1">${
+
+        escapeHtml(a.parentEmail || "—")}</div></div>
+        <div><div class="section-label">Student Email</div><div class="mt-1">${escapeHtml(a.studentEmail || "—")}</div></div>
+        <div><div class="section-label">Grade</div><div class="mt-1">${escapeHtml(a.grade || "—")}</div></div>
+        <div><div class="section-label">Student ID</div><div class="mt-1 font-mono text-xs">${escapeHtml(a.studentId || "—")}</div></div>
+      </div>
+      ${
+        a.folderLink ? `<a href="${escapeHtml(a.folderLink)}" target="_blank" class="btn-gold text-xs inline-block mt-4">Open Drive Folder ↗</a>` : ""}
     </div>
 
-    <h3 class="text-sm font-bold uppercase tracking-wide text-gray-600 mb-2">Uploaded Forms</h3>
-    <div class="mb-6">${
+    <div class="mb-6">
+      <div class="section-label mb-2">Uploaded Forms</div>
+      ${
 
 
-        filesHtml}</div>
 
-    <h3 class="text-sm font-bold uppercase tracking-wide text-gray-600 mb-2 flex items-center justify-between">
-      <span>Recommenders</span>
-      <button onclick="showRecForm('${
+        filesHtml}
+    </div>
+
+    <div class="mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <div class="section-label">Recommenders</div>
+        <div class="flex gap-2">
+          ${
 
 
-        a.studentId}')" class="btn-gold text-xs">+ Send Secure Link</button>
-    </h3>
-    <div class="mb-6">${
-        recsHtml}</div>
 
-    <div id="recFormWrap" class="hidden card p-4 mb-6" style="background:var(--clr-gold-light);"></div>
 
-    <h3 class="text-sm font-bold uppercase tracking-wide text-gray-600 mb-3">Your Evaluation</h3>
+
+        quickInviteBtn}
+          <button onclick="showRecForm('${a.studentId}')" class="btn-ghost text-xs">+ Add manually</button>
+        </div>
+      </div>
+      ${
+
+        allRecsHtml}
+    </div>
+
+    <div id="recFormWrap" class="hidden card p-4 mb-6" style="background:var(--clr-gold-light);border:1px solid var(--clr-gold);"></div>
+
+    <div class="section-label mb-3">Your Evaluation</div>
     ${
+
 
 
 
@@ -515,38 +706,122 @@
         document.getElementById("modal").classList.remove("hidden");
     }
 
+    // ── Invite a nominated teacher (one-click from the list) ──
+    async function inviteNominated(studentId, teacher) {
+        const rec = {
+            name: teacher.teacherName || teacher.name || "",
+            email: teacher.teacherEmail || teacher.email || "",
+            school: teacher.school || ""
+        };
+        if (!rec.email) {
+            alert("No email on file.");
+            return;
+        }
+        const r = await callBackend({
+            action: "sendRecommenderLinks",
+            token: idToken,
+            studentId,
+            recommenders: [rec],
+            recommenderUrl: RECOMMENDER_URL
+        });
+        if (r.status !== "success") {
+            alert(r.message || "Failed.");
+            return;
+        }
+        const sent = (r.results || []).filter(x => x.status === "sent").length;
+        alert(sent ? "Invitation sent to " + rec.email : "Failed to send.");
+        await loadApplications();
+        openModal(studentId);
+    }
+
+    async function inviteAllNominated(studentId) {
+        const a = applications.find(x => String(x.studentId) === String(studentId));
+        if (!a)
+            return;
+        const invitedEmails = new Set((a.recommenders || []).map(r => (r.teacherEmail || "").toLowerCase().trim()));
+        const recs = [a.teacher1, a.teacher2].filter(t => t && t.email && !invitedEmails.has(t.email.toLowerCase().trim()))
+        .map(t => ({
+            name: t.name,
+            email: t.email,
+            school: t.school
+        }));
+        if (!recs.length) {
+            alert("No nominated teachers to invite.");
+            return;
+        }
+        if (!confirm(`Send secure recommendation links to ${recs.length} teacher(s)?`))
+            return;
+        const r = await callBackend({
+            action: "sendRecommenderLinks",
+            token: idToken,
+            studentId,
+            recommenders: recs,
+            recommenderUrl: RECOMMENDER_URL
+        });
+        if (r.status !== "success") {
+            alert(r.message || "Failed.");
+            return;
+        }
+        alert("Sent " + (r.results || []).filter(x => x.status === "sent").length + " invitation(s).");
+        await loadApplications();
+        openModal(studentId);
+    }
+
     function scoreFormHtml(a, s) {
         const rubric = rubricForTrack(a.track);
+        const maxTotal = rubric.reduce((x, c) => x + c.max, 0);
+        const currentTotal = Number(s.academic || 0) + Number(s.character || 0) + Number(s.essay || 0) + Number(s.need || 0);
         return `
-  <div class="card p-4" style="border:1.5px solid var(--clr-gold);">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+  <div class="card p-5" style="border:1.5px solid var(--clr-gold);background:linear-gradient(to bottom,#fffef8,#fff);">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
       ${
 
         rubric.map(c => `<div>
-        <label class="text-xs font-semibold text-gray-700 block mb-1">${c.label} <span class="text-gray-400">/${c.max}</span></label>
-        <input type="number" min="0" max="${c.max}" value="${s[c.key] ?? ""}" data-score="${c.key}" class="form-input" onchange="updateTotal()">
-        <p class="text-[11px] text-gray-500 mt-1">${c.desc}</p>
+        <label class="flex items-baseline justify-between mb-1">
+          <span class="text-xs font-bold uppercase tracking-wide" style="color:var(--clr-forest);">${
+        c.label}</span>
+          <span class="text-[10px] text-gray-400">of ${c.max}</span>
+        </label>
+        <input type="number" min="0" max="${
+        c.max}" value="${s[c.key] ?? ""}" data-score="${c.key}" data-max="${c.max}" class="form-input score-input" onchange="updateTotal()" oninput="updateTotal()">
+        <p class="text-[11px] text-gray-500 mt-1 leading-snug">${c.desc}</p>
       </div>`).join("")}
     </div>
-    <div class="flex items-center gap-3 mb-3">
-      <label class="text-xs font-semibold text-gray-700">Recommendation</label>
-      <select id="rec_recommendation" class="form-input max-w-xs">
-        ${
+
+    <div class="flex flex-wrap items-end gap-4 mb-4 pt-4 border-t border-amber-200">
+      <div class="flex-1 min-w-[200px]">
+        <label class="section-label block mb-1">Recommendation</label>
+        <select id="rec_recommendation" class="form-input">
+          ${
+
+
 
 
 
         ["Pending", "Approve", "Conditional", "Deny"].map(x => `<option ${s.recommendation === x ? "selected" : ""}>${x}</option>`).join("")}
-      </select>
-      <div class="ml-auto text-sm"><strong>Total:</strong> <span id="scoreTotal" class="text-lg font-bold" style="color:var(--clr-forest);">${
-        (Number(s.academic || 0) + Number(s.character || 0) + Number(s.essay || 0) + Number(s.need || 0))}</span> / ${rubric.reduce((x, c) => x + c.max, 0)}</div>
+        </select>
+      </div>
+      <div class="text-right">
+        <div class="section-label">Total Score</div>
+        <div class="mt-1"><span id="scoreTotal" class="text-3xl font-bold" style="color:var(--clr-forest);">${
+
+
+
+        currentTotal}</span>
+          <span class="text-gray-400 text-lg">/ ${maxTotal}</span></div>
+      </div>
     </div>
-    <label class="text-xs font-semibold text-gray-700 block mb-1">Notes</label>
-    <textarea id="rec_notes" class="form-input" rows="3" placeholder="Private notes…">${
+
+    <label class="section-label block mb-2">Committee Notes <span class="text-gray-400 normal-case tracking-normal text-[11px]">(private)</span></label>
+    <textarea id="rec_notes" class="form-input" rows="3" placeholder="Private notes visible only to the Scholarship Committee…">${
+
+
 
         escapeHtml(s.notes || "")}</textarea>
-    <div class="flex justify-end mt-3">
-      <button onclick='saveScore(${
-        JSON.stringify(a.studentId)}, ${JSON.stringify(a.studentName)}, ${JSON.stringify(a.track)})' class="btn-primary text-sm">Save Evaluation</button>
+    <div class="flex items-center justify-between mt-4">
+      <p class="text-[11px] text-gray-500">${
+        s.timestamp ? "Last saved " + new Date(s.timestamp).toLocaleString() : "Not yet scored"}</p>
+      <button onclick='saveScore(${JSON.stringify(a.studentId)}, ${JSON.stringify(a.studentName)}, ${JSON.stringify(a.track)})' class="btn-primary text-sm">Save Evaluation</button>
     </div>
   </div>`
 
@@ -669,11 +944,15 @@
         const wrap = document.getElementById("recFormWrap");
         wrap.classList.remove("hidden");
         wrap.innerHTML = `
-    <h4 class="font-bold mb-2" style="color:var(--clr-forest);">Invite Recommenders</h4>
-    <p class="text-xs text-gray-600 mb-3">Each recommender receives a secure, single-use link by email.</p>
+    <div class="flex items-start justify-between mb-3">
+      <div>
+        <h4 class="font-bold text-base" style="color:var(--clr-forest);">Invite Additional Recommender</h4>
+        <p class="text-xs text-gray-600 mt-1">A secure, single-use link will be emailed directly to each recommender.</p>
+      </div>
+    </div>
     <div id="recRows"></div>
-    <button onclick="addRecRow()" class="btn-ghost text-xs mt-2">+ Add Recommender</button>
-    <div class="mt-3 flex justify-end gap-2">
+    <button onclick="addRecRow()" class="btn-ghost text-xs mt-2">+ Add another</button>
+    <div class="mt-4 flex justify-end gap-2 pt-3 border-t border-amber-200">
       <button onclick="document.getElementById('recFormWrap').classList.add('hidden')" class="btn-ghost text-sm">Cancel</button>
       <button onclick="submitRecs('${
 
@@ -681,20 +960,27 @@
 
 
 
-        studentId}')" class="btn-primary text-sm">Send Links</button>
+
+
+
+
+        studentId}')" class="btn-primary text-sm">✉ Send Secure Links</button>
     </div>`
         ;
         addRecRow();
+        wrap.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest"
+        });
     }
 
-    function addRecRow() {
+    function addRecRow(prefill) {
         const r = document.createElement("div");
-        r.className = "grid grid-cols-3 gap-2 mb-2";
-        r.innerHTML = `<input class="form-input text-sm" placeholder="Teacher name" data-rec="name">
-    <input class="form-input text-sm" placeholder="teacher@email.com" data-rec="email">
-    <input class="form-input text-sm" placeholder="School" data-rec="school">`
-
-        ;
+        r.className = "grid grid-cols-1 md:grid-cols-3 gap-2 mb-2";
+        const v = prefill || {};
+        r.innerHTML = `<input class="form-input text-sm" placeholder="Teacher full name" data-rec="name" value="${escapeHtml(v.name || '')}">
+    <input class="form-input text-sm" placeholder="teacher@school.edu" type="email" data-rec="email" value="${escapeHtml(v.email || '')}">
+    <input class="form-input text-sm" placeholder="School / Organization" data-rec="school" value="${escapeHtml(v.school || '')}">`;
         document.getElementById("recRows").appendChild(r);
     }
 
