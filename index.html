@@ -168,16 +168,6 @@
             <p class="text-sm text-gray-600 mb-6">Sign in with your authorized admin Google account.</p>
             <div id="googleBtn" class="flex justify-center"></div>
             <p id="loginError" class="text-red-600 text-sm mt-4 hidden"></p>
-            <div class="mt-8 pt-6 border-t border-gray-200 text-left">
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Backend Web App URL</label>
-                <input id="backendUrl" class="form-input text-xs" placeholder="https://script.google.com/macros/s/.../exec">
-                <label class="block text-xs font-semibold text-gray-700 mb-1 mt-3">
-                    Recommender Form URL 
-                    <span class="text-gray-400">(where recommender_form.html is hosted)</span>
-                </label>
-                <input id="recommenderUrl" class="form-input text-xs" placeholder="https://yourdomain.com/recommender_form.html">
-                <button onclick="saveConfig()" class="btn-ghost text-xs w-full mt-3">Save Config</button>
-            </div>
         </div>
     </section>
 
@@ -249,25 +239,14 @@
     <script>
     // ── CONFIG ──
     const GOOGLE_CLIENT_ID = "14216824305-v19ecsmrhk1muaglrlhjceqjk5oeqr4n.apps.googleusercontent.com";
-    let BACKEND_URL = localStorage.getItem("sva_backend_url") || "";
-    let RECOMMENDER_URL = localStorage.getItem("sva_recommender_url") || "";
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzZ9LBchK0uKXZbrp_F-DuGddmIlXy1nVxjmjDVDTNZr8NXeGhD-AdIdkXeCO7e6kDNvA/exec";
+    const RECOMMENDER_URL = "https://recommend.svaportal.com";
     let idToken = null;
     let currentEmail = null;
     let applications = [];
 
-    function saveConfig() {
-        BACKEND_URL = document.getElementById("backendUrl").value.trim();
-        RECOMMENDER_URL = document.getElementById("recommenderUrl").value.trim();
-        localStorage.setItem("sva_backend_url", BACKEND_URL);
-        localStorage.setItem("sva_recommender_url", RECOMMENDER_URL);
-        alert("Saved.");
-    }
-
     // ── GOOGLE AUTH ──
     window.onload = () => {
-        document.getElementById("backendUrl").value = BACKEND_URL;
-        document.getElementById("recommenderUrl").value = RECOMMENDER_URL;
-
         const interval = setInterval(() => {
             if (window.google && window.google.accounts) {
                 clearInterval(interval);
@@ -288,10 +267,6 @@
 
     async function handleCredential(resp) {
         idToken = resp.credential;
-        if (!BACKEND_URL) {
-            showLoginError("Please set the Backend Web App URL first.");
-            return;
-        }
         try {
             const r = await callBackend({
                 action: "adminVerify",
@@ -691,10 +666,6 @@
 
     // ── SEND RECOMMENDER LINK FORM ──
     function showRecForm(studentId) {
-        if (!RECOMMENDER_URL) {
-            alert("Please set the Recommender Form URL in config (sign out → login page).");
-            return;
-        }
         const wrap = document.getElementById("recFormWrap");
         wrap.classList.remove("hidden");
         wrap.innerHTML = `
