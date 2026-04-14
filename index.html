@@ -1,872 +1,993 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SVA Scholarship — Admin Portal</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --clr-forest:#0f2e28;
-    --clr-forest-2:#17453c;
-    --clr-sage:#3d6b5e;
-    --clr-gold:#b8944a;
-    --clr-gold-bright:#d4b45a;
-    --clr-gold-light:#f5ecd0;
-    --clr-ivory:#fbf9f3;
-    --clr-paper:#ffffff;
-    --clr-warm:#f0ebe1;
-    --clr-border:#e8e3d5;
-    --clr-border-soft:#f0ece0;
-    --clr-ink:#1c1917;
-    --clr-ink-soft:#57534e;
-    --clr-ink-muted:#a8a29e;
-  }
-  *,*::before,*::after { box-sizing:border-box; }
-  body { font-family:'Inter',sans-serif; background:var(--clr-ivory); color:var(--clr-ink); -webkit-font-smoothing:antialiased; font-feature-settings:"cv11","ss01"; }
-  h1,h2,h3,h4 { font-family:'Fraunces',serif; letter-spacing:-.01em; font-weight:500; }
-  .serif { font-family:'Fraunces',serif; letter-spacing:-.01em; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVA Scholarship — Admin Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+    :root {
+        --clr-forest: #143628;
+        --clr-sage: #5b8274;
+        --clr-gold: #c29b3c;
+        --clr-gold-light: #fbf8f0;
+        --clr-cream: #f9f8f6;
+        --clr-border: #e6e4df;
+        --clr-text-main: #2c2a29;
+        --clr-text-muted: #6b6965;
+    }
 
-  /* Buttons */
-  .btn-primary { background:var(--clr-forest); color:#fff; padding:.6rem 1.1rem; border-radius:.5rem; font-weight:500; font-size:.875rem; transition:all .2s; letter-spacing:-.005em; }
-  .btn-primary:hover { background:var(--clr-forest-2); box-shadow:0 1px 2px rgba(15,46,40,.1),0 4px 12px rgba(15,46,40,.12); }
-  .btn-primary:disabled { opacity:.5; cursor:not-allowed; box-shadow:none; }
-  .btn-gold { background:var(--clr-gold); color:#fff; padding:.55rem 1.1rem; border-radius:.5rem; font-weight:500; font-size:.85rem; transition:all .2s; }
-  .btn-gold:hover { background:#a78238; }
-  .btn-ghost { background:var(--clr-paper); border:1px solid var(--clr-border); padding:.5rem .95rem; border-radius:.5rem; font-weight:500; font-size:.85rem; color:var(--clr-ink); transition:all .2s; }
-  .btn-ghost:hover { border-color:var(--clr-forest); background:var(--clr-ivory); }
-  .btn-icon { width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; border-radius:.5rem; border:1px solid var(--clr-border); background:var(--clr-paper); transition:all .2s; }
-  .btn-icon:hover { border-color:var(--clr-forest); background:var(--clr-ivory); }
+    body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--clr-cream);
+        color: var(--clr-text-main);
+        -webkit-font-smoothing: antialiased;
+    }
 
-  /* Cards & surfaces */
-  .card { background:var(--clr-paper); border:1px solid var(--clr-border); border-radius:.75rem; }
-  .surface { background:var(--clr-paper); border:1px solid var(--clr-border-soft); }
+    h1, h2, h3, h4, .serif {
+        font-family: 'Lora', serif;
+    }
 
-  /* Inputs */
-  .form-input { width:100%; padding:.55rem .8rem; border-radius:.5rem; border:1px solid var(--clr-border); background:var(--clr-paper); font-size:.875rem; font-family:inherit; color:var(--clr-ink); transition:all .15s; }
-  .form-input:focus { outline:none; border-color:var(--clr-forest); box-shadow:0 0 0 3px rgba(15,46,40,.08); }
-  .form-input::placeholder { color:var(--clr-ink-muted); }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d1d0cb; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #a8a6a1; }
 
-  /* Chips */
-  .chip { display:inline-flex; align-items:center; gap:4px; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:500; letter-spacing:.01em; }
-  .chip-dot { width:6px; height:6px; border-radius:50%; display:inline-block; }
-  .chip-sent      { background:#fef6dd; color:#8a6a15; }
-  .chip-done      { background:#e0f2ea; color:#1a5c46; }
-  .chip-pending   { background:#f5f5f4; color:#78716c; }
-  .chip-nominated { background:#f8f6ef; color:#78653f; border:1px dashed #c9b88a; }
-  .chip-warn      { background:#fef2f2; color:#991b1b; }
-  .track-budding  { background:#fdf2e9; color:#854d0e; }
-  .track-junior   { background:#eef4ff; color:#1e40af; }
-  .track-future   { background:#ecfdf5; color:#065f46; }
+    /* Buttons */
+    .btn-primary {
+        background: var(--clr-forest);
+        color: #fff;
+        padding: 0.6rem 1.25rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        box-shadow: 0 2px 4px rgba(20, 54, 40, 0.1);
+    }
+    .btn-primary:hover {
+        background: #0d261b;
+        box-shadow: 0 4px 12px rgba(20, 54, 40, 0.2);
+    }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  /* Stat cards */
-  .stat-card { position:relative; background:var(--clr-paper); border:1px solid var(--clr-border); border-radius:.75rem; padding:1.25rem; transition:all .2s; }
-  .stat-card:hover { border-color:var(--clr-gold); box-shadow:0 1px 3px rgba(0,0,0,.04); }
+    .btn-gold {
+        background: var(--clr-gold-light);
+        color: var(--clr-forest);
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        border: 1px solid #ebdca8;
+        transition: all 0.2s ease;
+    }
+    .btn-gold:hover {
+        background: #f4ecce;
+        border-color: var(--clr-gold);
+    }
 
-  /* Recommender row */
-  .rec-row { display:flex; align-items:center; justify-content:space-between; padding:.85rem 1rem; border-radius:.65rem; background:var(--clr-paper); border:1px solid var(--clr-border-soft); margin-bottom:.5rem; transition:all .15s; }
-  .rec-row:hover { border-color:var(--clr-border); background:var(--clr-ivory); }
-  .rec-row.nominated { background:#fdfbf4; border-style:dashed; border-color:#c9b88a; }
+    .btn-ghost {
+        background: #fff;
+        border: 1px solid var(--clr-border);
+        color: var(--clr-text-main);
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .btn-ghost:hover {
+        border-color: #d0cece;
+        background: #fafafa;
+    }
 
-  /* Avatar */
-  .avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--clr-forest),var(--clr-sage)); color:#d4b45a; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:12px; flex-shrink:0; font-family:'Fraunces',serif; letter-spacing:.02em; }
-  .avatar-sm { width:28px; height:28px; font-size:10px; }
+    /* Layout & Cards */
+    .card {
+        background: #fff;
+        border: 1px solid var(--clr-border);
+        border-radius: 1rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    }
 
-  /* Labels */
-  .section-label { font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--clr-ink-muted); }
-  .eyebrow { font-size:11px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--clr-gold); }
+    /* Forms */
+    .form-input {
+        width: 100%;
+        padding: 0.6rem 0.85rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--clr-border);
+        background: #fff;
+        color: var(--clr-text-main);
+        transition: all 0.2s ease;
+        font-size: 0.95rem;
+    }
+    .form-input:focus {
+        outline: none;
+        border-color: var(--clr-gold);
+        box-shadow: 0 0 0 3px rgba(194, 155, 60, 0.15);
+    }
+    select.form-input { appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b6965' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; }
 
-  /* Score input */
-  .score-input { text-align:center; font-weight:600; font-size:1.15rem; font-family:'Fraunces',serif; }
+    /* Typography Labels */
+    .section-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--clr-text-muted);
+    }
 
-  /* Table */
-  table.refined { width:100%; border-collapse:separate; border-spacing:0; }
-  table.refined thead th { background:var(--clr-ivory); font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--clr-ink-soft); padding:.65rem 1rem; text-align:left; border-bottom:1px solid var(--clr-border); position:sticky; top:0; z-index:1; }
-  table.refined thead th.sortable { cursor:pointer; user-select:none; }
-  table.refined thead th.sortable:hover { color:var(--clr-forest); }
-  table.refined tbody tr { transition:background .15s; cursor:pointer; border-bottom:1px solid var(--clr-border-soft); }
-  table.refined tbody tr:hover { background:var(--clr-ivory); }
-  table.refined tbody tr.selected { background:#fdfbf4; border-left:3px solid var(--clr-gold); }
-  table.refined tbody td { padding:.85rem 1rem; font-size:.88rem; vertical-align:middle; }
+    /* Chips & Badges */
+    .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+    }
+    .chip-sent { background: #fdf8e9; color: #8a6a15; border: 1px solid #f2e2b3; }
+    .chip-done { background: #eef7f4; color: #1a5c46; border: 1px solid #c8e6da; }
+    .chip-pending { background: #f5f4f2; color: #6b6965; border: 1px solid #e1dfda; }
+    .chip-nominated { background: #f8f9fa; color: #475569; border: 1px dashed #cbd5e1; }
+    
+    .track-budding { background: #fdf5ef; color: #8a4c15; }
+    .track-junior { background: #eff4fb; color: #1e4b8a; }
+    .track-future { background: #ecf8f3; color: #065f46; }
 
-  /* Slide-over panel */
-  .panel-backdrop { position:fixed; inset:0; background:rgba(15,23,42,.25); backdrop-filter:blur(4px); z-index:40; opacity:0; pointer-events:none; transition:opacity .25s; }
-  .panel-backdrop.open { opacity:1; pointer-events:auto; }
-  .slide-panel { position:fixed; top:0; right:0; bottom:0; width:100%; max-width:780px; background:var(--clr-ivory); z-index:50; transform:translateX(100%); transition:transform .28s cubic-bezier(.25,.8,.25,1); overflow-y:auto; box-shadow:-20px 0 60px rgba(15,23,42,.08); }
-  .slide-panel.open { transform:translateX(0); }
+    /* Table Enhancements */
+    table th { font-family: 'DM Sans', sans-serif; font-weight: 600; color: var(--clr-text-muted); border-bottom: 1px solid var(--clr-border); }
+    table tr { transition: background 0.15s ease; }
+    table tr:hover td { background: #fcfbf9; }
+    
+    /* Recommender Rows */
+    .rec-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        background: #fff;
+        border: 1px solid var(--clr-border);
+        margin-bottom: 0.75rem;
+        transition: border-color 0.2s;
+    }
+    .rec-row:hover { border-color: #d4d2cc; }
+    .rec-row.nominated { background: #fafaf9; border-style: dashed; }
+    
+    .rec-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #f1f0ec;
+        color: var(--clr-forest);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+        border: 1px solid #e2e0da;
+    }
 
-  /* Tabs */
-  .tab { padding:.75rem 0; margin-right:1.5rem; cursor:pointer; border-bottom:2px solid transparent; font-weight:500; font-size:.88rem; color:var(--clr-ink-soft); transition:all .2s; }
-  .tab.active { border-color:var(--clr-forest); color:var(--clr-forest); }
-  .tab:hover { color:var(--clr-forest); }
+    /* Modal / Slide-over */
+    .modal-bg {
+        position: fixed;
+        inset: 0;
+        background: rgba(20, 54, 40, 0.4);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        padding: 2rem;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    .modal-bg.active { opacity: 1; pointer-events: auto; }
+    
+    .modal {
+        background: var(--clr-cream);
+        border-radius: 1.25rem;
+        width: 100%;
+        max-width: 1100px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: scale(0.98);
+        transition: transform 0.3s ease;
+        overflow: hidden;
+    }
+    .modal-bg.active .modal { transform: scale(1); }
 
-  /* Progress bar */
-  .progress-track { height:4px; background:var(--clr-warm); border-radius:999px; overflow:hidden; }
-  .progress-fill { height:100%; background:linear-gradient(90deg,var(--clr-gold),var(--clr-gold-bright)); transition:width .3s; }
+    .modal-header {
+        background: #fff;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--clr-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        z-index: 10;
+    }
+    .modal-body {
+        overflow-y: auto;
+        padding: 2rem;
+        flex: 1;
+    }
 
-  /* Filter pills */
-  .pill { padding:.4rem .9rem; border-radius:999px; font-size:.8rem; font-weight:500; background:var(--clr-paper); border:1px solid var(--clr-border); color:var(--clr-ink-soft); cursor:pointer; transition:all .15s; }
-  .pill:hover { border-color:var(--clr-forest); color:var(--clr-forest); }
-  .pill.active { background:var(--clr-forest); color:#fff; border-color:var(--clr-forest); }
-
-  /* Utilities */
-  .divider { height:1px; background:var(--clr-border-soft); }
-  .hover-lift:hover { transform:translateY(-1px); }
-  .num { font-variant-numeric:tabular-nums; }
-  .kbd { display:inline-block; padding:1px 6px; font-family:'Inter',monospace; font-size:11px; border:1px solid var(--clr-border); border-bottom-width:2px; border-radius:4px; background:var(--clr-paper); color:var(--clr-ink-soft); }
-
-  /* Toast */
-  .toast { position:fixed; bottom:1.5rem; right:1.5rem; z-index:100; padding:.85rem 1.25rem; background:var(--clr-forest); color:#fff; border-radius:.65rem; box-shadow:0 10px 30px rgba(0,0,0,.2); font-size:.875rem; transform:translateY(20px); opacity:0; transition:all .25s; }
-  .toast.show { transform:translateY(0); opacity:1; }
-  .toast.error { background:#991b1b; }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width:10px; height:10px; }
-  ::-webkit-scrollbar-track { background:transparent; }
-  ::-webkit-scrollbar-thumb { background:#e5e0d0; border-radius:10px; border:2px solid transparent; background-clip:content-box; }
-  ::-webkit-scrollbar-thumb:hover { background:#d4cfc0; background-clip:content-box; border:2px solid transparent; }
-</style>
+    /* Tabs */
+    .tab-nav { border-bottom: 1px solid var(--clr-border); display: flex; gap: 2rem; }
+    .tab {
+        padding: 1rem 0;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        font-weight: 500;
+        color: var(--clr-text-muted);
+        transition: all 0.2s;
+    }
+    .tab:hover { color: var(--clr-text-main); }
+    .tab.active {
+        border-color: var(--clr-forest);
+        color: var(--clr-forest);
+        font-weight: 600;
+    }
+    </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen flex flex-col relative">
 
-<!-- ────────── LOGIN ────────── -->
-<section id="loginView" class="min-h-screen grid md:grid-cols-2">
-  <!-- Left: brand panel -->
-  <div class="hidden md:flex flex-col justify-between p-12 text-white relative overflow-hidden" style="background:linear-gradient(135deg,var(--clr-forest) 0%,var(--clr-forest-2) 60%,var(--clr-sage) 100%);">
-    <div style="position:absolute;top:-80px;right:-80px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(212,180,90,.15),transparent);"></div>
-    <div style="position:absolute;bottom:-100px;left:-100px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(212,180,90,.08),transparent);"></div>
-    <div class="relative z-10">
-      <div class="flex items-center gap-3 mb-2">
-        <div style="width:44px;height:44px;border-radius:10px;background:var(--clr-gold);display:flex;align-items:center;justify-content:center;color:var(--clr-forest);font-family:'Fraunces',serif;font-weight:700;font-size:18px;">SVA</div>
-        <div class="font-medium tracking-wide">SVA School</div>
-      </div>
-    </div>
-    <div class="relative z-10">
-      <p class="eyebrow mb-4" style="color:var(--clr-gold-bright);">Scholarship Program</p>
-      <h1 class="text-5xl leading-tight mb-4" style="color:#fff;">Shaping the<br>next generation<br>of leaders.</h1>
-      <p class="text-white/70 text-base max-w-sm leading-relaxed">A dedicated workspace for the Scholarship Committee to review applications, coordinate recommendations, and evaluate candidates with care.</p>
-    </div>
-    <div class="relative z-10 text-xs text-white/50">© SVA Scholarship Committee · Confidential</div>
-  </div>
-  <!-- Right: sign-in -->
-  <div class="flex items-center justify-center p-8 md:p-16 bg-[var(--clr-ivory)]">
-    <div class="w-full max-w-sm">
-      <p class="eyebrow mb-3">Admin Access</p>
-      <h2 class="text-3xl mb-2" style="color:var(--clr-forest);">Welcome back.</h2>
-      <p class="text-[var(--clr-ink-soft)] mb-8 leading-relaxed">Sign in with your authorized Google account to review this year's applications.</p>
-      <div id="googleBtn" class="mb-4"></div>
-      <p id="loginError" class="text-red-600 text-sm hidden"></p>
-      <div class="mt-12 pt-6 border-t border-[var(--clr-border-soft)]">
-        <p class="text-xs text-[var(--clr-ink-muted)] leading-relaxed">Access restricted to committee members listed in the Admins sheet. If you need access, contact <a href="mailto:scholarship@svaschool.org" class="text-[var(--clr-sage)] hover:underline">scholarship@svaschool.org</a>.</p>
-      </div>
-    </div>
-  </div>
-</section>
+    <section id="loginView" class="absolute inset-0 z-50 flex items-center justify-center p-4 bg-stone-50" style="background-image: radial-gradient(#e6e4df 1px, transparent 1px); background-size: 32px 32px;">
+        <div class="card max-w-md w-full p-10 text-center relative overflow-hidden bg-white/95 backdrop-blur shadow-2xl border-0 ring-1 ring-stone-900/5">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-stone-200 via-stone-400 to-stone-200"></div>
+            
+            <div class="mx-auto w-16 h-16 rounded-2xl bg-stone-50 border border-stone-100 flex items-center justify-center mb-6 shadow-sm">
+                <span class="font-serif font-bold text-2xl text-[var(--clr-forest)]">SVA</span>
+            </div>
 
-<!-- ────────── DASHBOARD ────────── -->
-<section id="dashboardView" class="hidden">
-  <header class="bg-[var(--clr-paper)] border-b border-[var(--clr-border-soft)] sticky top-0 z-30">
-    <div class="max-w-[1400px] mx-auto px-8 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div style="width:40px;height:40px;border-radius:9px;background:var(--clr-forest);display:flex;align-items:center;justify-content:center;color:var(--clr-gold);font-family:'Fraunces',serif;font-weight:700;font-size:16px;">SVA</div>
-        <div>
-          <div class="text-sm font-semibold" style="color:var(--clr-forest);">SVA Scholarship</div>
-          <div class="text-xs text-[var(--clr-ink-muted)]">Committee Portal · <span id="adminEmail"></span></div>
+            <h1 class="text-3xl mb-2 font-medium text-[var(--clr-forest)]">Scholarship Review</h1>
+            <p class="text-sm text-stone-500 mb-8 font-medium">Committee Evaluation Portal</p>
+            
+            <div id="googleBtn" class="flex justify-center h-11"></div>
+            <p id="loginError" class="text-red-600 text-sm mt-4 hidden bg-red-50 p-2 rounded-lg"></p>
+            
+            <div class="mt-8 pt-6 border-t border-stone-100">
+                <p class="text-[10px] uppercase tracking-widest text-stone-400">Authorized Personnel Only</p>
+            </div>
         </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <button onclick="loadApplications()" class="btn-icon" title="Refresh (⌘R)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-        </button>
-        <button onclick="signOut()" class="btn-ghost">Sign out</button>
-      </div>
-    </div>
-    <div class="max-w-[1400px] mx-auto px-8 flex">
-      <div class="tab active" onclick="switchTab('apps',this)">Applications</div>
-      <div class="tab" onclick="switchTab('recs',this)">Recommendations</div>
-      <div class="tab" onclick="switchTab('analytics',this)">Analytics</div>
-    </div>
-  </header>
+    </section>
 
-  <main class="max-w-[1400px] mx-auto px-8 py-8">
-    <!-- Page intro -->
-    <div class="mb-8 flex items-end justify-between flex-wrap gap-4">
-      <div>
-        <p class="eyebrow mb-2">Scholarship Program · 2025–26</p>
-        <h1 class="text-4xl" style="color:var(--clr-forest);">Applications Review</h1>
-        <p class="text-[var(--clr-ink-soft)] mt-2 text-sm">Review submitted applications, coordinate teacher recommendations, and record committee evaluations.</p>
-      </div>
-    </div>
+    <section id="dashboardView" class="hidden flex-1 flex flex-col">
+        <header class="bg-white border-b border-[var(--clr-border)] sticky top-0 z-20">
+            <div class="max-w-7xl mx-auto px-8 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-[#f4f2ec] flex items-center justify-center border border-[#e2dfd5]">
+                        <span class="font-serif font-bold text-xl text-[var(--clr-forest)]">SVA</span>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-medium text-[var(--clr-forest)] tracking-tight">Admissions & Scholarships</h1>
+                        <p class="text-xs text-[var(--clr-text-muted)] font-medium mt-0.5">Logged in as <span id="adminEmail" class="text-stone-800"></span></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="loadApplications()" class="btn-ghost flex items-center gap-2 text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        Refresh Data
+                    </button>
+                    <button onclick="signOut()" class="text-sm text-stone-500 hover:text-stone-800 font-medium transition px-2">Sign out</button>
+                </div>
+            </div>
+            <div class="max-w-7xl mx-auto px-8 tab-nav">
+                <div class="tab active" onclick="switchTab('apps',this)">Applications Directory</div>
+                <div class="tab" onclick="switchTab('recs',this)">Recommendation Status</div>
+            </div>
+        </header>
 
-    <!-- Stats -->
-    <div id="statsBar" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10"></div>
+        <main class="max-w-7xl mx-auto p-8 w-full flex-1">
+            <div id="statsBar" class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8"></div>
 
-    <!-- Applications tab -->
-    <div id="tabApps">
-      <div class="flex flex-wrap gap-3 mb-6 items-center">
-        <div class="relative flex-1 max-w-md">
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--clr-ink-muted)]" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input id="searchBox" class="form-input pl-9" placeholder="Search by student, email, or ID…" oninput="renderApps()">
+            <div id="tabApps">
+                <div class="flex flex-col md:flex-row gap-3 mb-6 bg-white p-3 rounded-xl border border-[var(--clr-border)] shadow-sm">
+                    <div class="relative flex-1">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <input id="searchBox" class="form-input pl-9 border-transparent shadow-none bg-stone-50 focus:bg-white" placeholder="Search applicant name, email, or ID..." oninput="renderApps()">
+                    </div>
+                    <div class="w-px bg-stone-200 hidden md:block mx-1"></div>
+                    <select id="trackFilter" class="form-input md:w-48 border-transparent shadow-none bg-stone-50 hover:bg-stone-100 cursor-pointer" onchange="renderApps()">
+                        <option value="">All Tracks</option>
+                        <option>Budding Scholar</option>
+                        <option>Junior Innovator</option>
+                        <option>Future Leader</option>
+                    </select>
+                    <select id="statusFilter" class="form-input md:w-48 border-transparent shadow-none bg-stone-50 hover:bg-stone-100 cursor-pointer" onchange="renderApps()">
+                        <option value="">All Statuses</option>
+                        <option>Submitted</option>
+                        <option>Under Review</option>
+                        <option>Approved</option>
+                        <option>Rejected</option>
+                    </select>
+                </div>
+                
+                <div class="card overflow-hidden bg-white">
+                    <div id="appsTable" class="w-full overflow-x-auto"></div>
+                </div>
+            </div>
+
+            <div id="tabRecs" class="hidden">
+                <div class="card overflow-hidden bg-white">
+                    <div id="recsTable" class="w-full overflow-x-auto"></div>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <div id="modal" class="modal-bg">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <div class="flex items-center gap-3 mb-1">
+                        <h2 class="text-2xl font-medium text-[var(--clr-forest)]" id="modalTitle"></h2>
+                        <span id="modalStatusBadge"></span>
+                    </div>
+                    <p class="text-sm text-[var(--clr-text-muted)] font-medium" id="modalSub"></p>
+                </div>
+                <button onclick="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="modal-body bg-[var(--clr-cream)]">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
+                    
+                    <div class="lg:col-span-7 space-y-8" id="modalLeftCol">
+                        </div>
+
+                    <div class="lg:col-span-5 relative">
+                        <div class="sticky top-0" id="modalRightCol">
+                             </div>
+                    </div>
+
+                </div>
+            </div>
         </div>
-        <div class="flex gap-1.5 flex-wrap" id="trackPills">
-          <button class="pill active" data-filter="track" data-value="" onclick="setPill(this)">All tracks</button>
-          <button class="pill" data-filter="track" data-value="Budding Scholar" onclick="setPill(this)">Budding Scholar</button>
-          <button class="pill" data-filter="track" data-value="Junior Innovator" onclick="setPill(this)">Junior Innovator</button>
-          <button class="pill" data-filter="track" data-value="Future Leader" onclick="setPill(this)">Future Leader</button>
-        </div>
-        <select id="statusFilter" class="form-input max-w-[160px]" onchange="renderApps()">
-          <option value="">All statuses</option>
-          <option>Submitted</option>
-          <option>Under Review</option>
-          <option>Approved</option>
-          <option>Rejected</option>
-        </select>
-        <div id="resultCount" class="text-xs text-[var(--clr-ink-muted)] ml-auto"></div>
-      </div>
-      <div id="appsTable" class="card overflow-hidden"></div>
     </div>
 
-    <!-- Recommendations tab -->
-    <div id="tabRecs" class="hidden">
-      <div id="recsTable" class="card overflow-hidden"></div>
-    </div>
+    <script>
+    // ── CONFIG ──
+    const GOOGLE_CLIENT_ID = "14216824305-v19ecsmrhk1muaglrlhjceqjk5oeqr4n.apps.googleusercontent.com";
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzZ9LBchK0uKXZbrp_F-DuGddmIlXy1nVxjmjDVDTNZr8NXeGhD-AdIdkXeCO7e6kDNvA/exec";
+    const RECOMMENDER_URL = "https://recommend.svaportal.com";
+    let idToken = null;
+    let currentEmail = null;
+    let applications = [];
 
-    <!-- Analytics tab -->
-    <div id="tabAnalytics" class="hidden">
-      <div id="analyticsPane"></div>
-    </div>
-  </main>
-</section>
+    // ── GOOGLE AUTH ──
+    window.onload = () => {
+        const interval = setInterval(() => {
+            if (window.google && window.google.accounts) {
+                clearInterval(interval);
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleCredential
+                });
+                google.accounts.id.renderButton(document.getElementById("googleBtn"),
+                {
+                    theme: "outline",
+                    size: "large",
+                    text: "signin_with",
+                    shape: "rectangular"
+                });
+            }
+        }, 100);
+    };
 
-<!-- ────────── SLIDE-OVER DETAIL PANEL ────────── -->
-<div id="panelBackdrop" class="panel-backdrop" onclick="closeModal()"></div>
-<aside id="modal" class="slide-panel">
-  <header class="sticky top-0 bg-[var(--clr-ivory)] border-b border-[var(--clr-border-soft)] px-8 py-5 z-10 flex justify-between items-start gap-4">
-    <div class="min-w-0">
-      <p class="eyebrow mb-1" id="modalEyebrow">Application</p>
-      <h2 class="text-2xl truncate" id="modalTitle" style="color:var(--clr-forest);"></h2>
-      <p class="text-sm text-[var(--clr-ink-soft)] mt-1" id="modalSub"></p>
-    </div>
-    <button onclick="closeModal()" class="btn-icon flex-shrink-0" title="Close (Esc)">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-    </button>
-  </header>
-  <div class="px-8 py-6" id="modalBody"></div>
-</aside>
-
-<!-- Toast -->
-<div id="toast" class="toast"></div>
-
-<script>
-// ── CONFIG ──
-const GOOGLE_CLIENT_ID = "14216824305-v19ecsmrhk1muaglrlhjceqjk5oeqr4n.apps.googleusercontent.com";
-const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzZ9LBchK0uKXZbrp_F-DuGddmIlXy1nVxjmjDVDTNZr8NXeGhD-AdIdkXeCO7e6kDNvA/exec";
-const RECOMMENDER_URL = "https://recommend.svaportal.com";
-let idToken = null;
-let currentEmail = null;
-let applications = [];
-
-// ── GOOGLE AUTH ──
-window.onload = () => {
-  const interval = setInterval(() => {
-    if (window.google && window.google.accounts) {
-      clearInterval(interval);
-      google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredential });
-      google.accounts.id.renderButton(document.getElementById("googleBtn"),
-        { theme:"filled_blue", size:"large", text:"signin_with", shape:"rectangular" });
+    async function handleCredential(resp) {
+        idToken = resp.credential;
+        document.getElementById("googleBtn").innerHTML = "<div class='text-sm text-stone-500 py-2'>Verifying securely...</div>";
+        try {
+            const r = await callBackend({ action: "adminVerify", token: idToken });
+            if (r.status !== "success") { showLoginError(r.message); return; }
+            currentEmail = r.email;
+            document.getElementById("adminEmail").textContent = r.email;
+            document.getElementById("loginView").classList.add("hidden");
+            document.getElementById("dashboardView").classList.remove("hidden");
+            loadApplications();
+        } catch (e) { showLoginError("Network error: " + e.message); }
     }
-  }, 100);
-};
 
-async function handleCredential(resp) {
-  idToken = resp.credential;
-  try {
-    const r = await callBackend({ action:"adminVerify", token: idToken });
-    if (r.status !== "success") { showLoginError(r.message); return; }
-    currentEmail = r.email;
-    document.getElementById("adminEmail").textContent = r.email;
-    document.getElementById("loginView").classList.add("hidden");
-    document.getElementById("dashboardView").classList.remove("hidden");
-    loadApplications();
-  } catch (e) { showLoginError("Network error: " + e.message); }
-}
-
-function showLoginError(msg) {
-  const el = document.getElementById("loginError");
-  el.textContent = msg; el.classList.remove("hidden");
-}
-
-function signOut() { google.accounts.id.disableAutoSelect(); location.reload(); }
-
-// ── BACKEND CALL ──
-async function callBackend(payload) {
-  const r = await fetch(BACKEND_URL, {
-    method:"POST", body: JSON.stringify(payload),
-    headers: { "Content-Type": "text/plain;charset=utf-8" }  // avoids CORS preflight on Apps Script
-  });
-  return r.json();
-}
-
-// ── LOAD APPS ──
-async function loadApplications() {
-  const r = await callBackend({ action:"listApplications", token: idToken });
-  if (r.status !== "success") { alert(r.message); return; }
-  applications = r.applications || [];
-  renderStats();
-  renderApps();
-}
-
-function renderStats() {
-  const total = applications.length;
-  const submitted = applications.filter(a => a.status === "Submitted").length;
-  const scored = applications.filter(a => (a.scores||[]).length > 0).length;
-  const pendingRecs = applications.reduce((n,a) => n + (a.recommenders||[]).filter(r => r.status !== "Submitted").length, 0);
-  const byTrack = t => applications.filter(a => a.track === t).length;
-  const cards = [
-    { label:"Applications",    value: total,     sub: submitted + " submitted" },
-    { label:"Awaiting Review", value: submitted - scored, sub: scored + " scored" },
-    { label:"Pending Recs",    value: pendingRecs, sub: "across all students" },
-    { label:"Budding Scholar", value: byTrack("Budding Scholar"), sub:"K–2" },
-    { label:"Junior / Future", value: byTrack("Junior Innovator") + " / " + byTrack("Future Leader"), sub:"3–5 · 6–8" }
-  ];
-  document.getElementById("statsBar").innerHTML = cards.map(c =>
-    `<div class="card stat-card p-4">
-       <div class="section-label">${c.label}</div>
-       <div class="text-2xl font-bold mt-1" style="color:var(--clr-forest);">${c.value}</div>
-       <div class="text-xs text-gray-500 mt-1">${c.sub}</div>
-     </div>`).join("");
-}
-
-function trackChip(t) {
-  const cls = t === "Budding Scholar" ? "track-budding" : t === "Junior Innovator" ? "track-junior" : "track-future";
-  return `<span class="chip ${cls}">${t||"—"}</span>`;
-}
-
-function renderApps() {
-  const q = (document.getElementById("searchBox").value || "").toLowerCase();
-  const tf = document.getElementById("trackFilter").value;
-  const sf = document.getElementById("statusFilter").value;
-  const filtered = applications.filter(a => {
-    if (tf && a.track !== tf) return false;
-    if (sf && a.status !== sf) return false;
-    if (q) {
-      const hay = [a.studentName,a.studentEmail,a.parentEmail,a.studentId].join(" ").toLowerCase();
-      if (!hay.includes(q)) return false;
+    function showLoginError(msg) {
+        const el = document.getElementById("loginError");
+        el.textContent = msg; el.classList.remove("hidden");
+        document.getElementById("googleBtn").innerHTML = "";
+        google.accounts.id.renderButton(document.getElementById("googleBtn"), { theme: "outline", size: "large", text: "signin_with" });
     }
-    return true;
-  });
 
-  if (!filtered.length) {
-    document.getElementById("appsTable").innerHTML = '<div class="p-8 text-center text-gray-500">No applications found.</div>';
-    return;
-  }
+    function signOut() { google.accounts.id.disableAutoSelect(); location.reload(); }
 
-  const initials = s => (s||"?").toString().trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
-  const rows = filtered.map(a => {
-    const invited = a.recommenders||[];
-    const recCount = invited.length;
-    const recDone = invited.filter(r => r.status === "Submitted").length;
-    const nomCount = [a.teacher1, a.teacher2].filter(t => t && t.email).length;
-    const scoreCount = (a.scores||[]).length;
-    const avg = scoreCount ? (a.scores.reduce((s,x)=>s+Number(x.total||0),0)/scoreCount).toFixed(1) : "—";
-    const recLabel = recCount > 0
-      ? `<span class="${recDone===recCount?'text-emerald-700 font-semibold':'text-amber-700'}">${recDone}/${recCount}</span>`
-      : (nomCount > 0 ? `<span class="text-gray-500 italic">${nomCount} nominated</span>` : `<span class="text-gray-400">—</span>`);
-    return `<tr class="border-t border-gray-100 hover:bg-amber-50/40 cursor-pointer transition" onclick='openModal(${JSON.stringify(a.studentId)})'>
-      <td class="p-3">
-        <div class="flex items-center gap-3">
-          <div class="rec-avatar" style="width:32px;height:32px;font-size:11px;">${initials(a.studentName)}</div>
-          <div class="min-w-0">
-            <div class="font-semibold truncate">${escapeHtml(a.studentName||"")}</div>
-            <div class="text-xs text-gray-500 font-mono">${escapeHtml(a.studentId||"")}</div>
-          </div>
-        </div>
-      </td>
-      <td class="p-3 text-sm">${escapeHtml(a.grade||"")}</td>
-      <td class="p-3">${trackChip(a.track)}</td>
-      <td class="p-3 text-xs text-gray-600 truncate max-w-[180px]">${escapeHtml(a.parentEmail||"")}</td>
-      <td class="p-3"><span class="chip ${a.status==='Submitted'?'chip-sent':'chip-pending'}">${escapeHtml(a.status||"—")}</span></td>
-      <td class="p-3 text-xs">${recLabel}</td>
-      <td class="p-3 text-sm">${scoreCount ? `<strong>${avg}</strong> <span class="text-gray-400 text-xs">(${scoreCount})</span>` : "<span class='text-gray-400'>—</span>"}</td>
-    </tr>`;
-  }).join("");
+    async function callBackend(payload) {
+        const r = await fetch(BACKEND_URL, {
+            method: "POST",
+            body: JSON.stringify(payload),
+            headers: { "Content-Type": "text/plain;charset=utf-8" } 
+        });
+        return r.json();
+    }
 
-  document.getElementById("appsTable").innerHTML = `
-    <table class="w-full text-sm">
-      <thead class="bg-amber-50/60 text-xs uppercase tracking-wide text-gray-600">
-        <tr><th class="p-3 text-left">Student</th><th class="p-3 text-left">Grade</th><th class="p-3 text-left">Track</th>
-            <th class="p-3 text-left">Parent</th><th class="p-3 text-left">Status</th>
-            <th class="p-3 text-left">Recs</th><th class="p-3 text-left">Avg Score</th></tr>
-      </thead><tbody>${rows}</tbody>
-    </table>`;
-}
+    async function loadApplications() {
+        const r = await callBackend({ action: "listApplications", token: idToken });
+        if (r.status !== "success") { alert(r.message); return; }
+        applications = r.applications || [];
+        renderStats();
+        renderApps();
+    }
 
-function switchTab(which, el) {
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  el.classList.add("active");
-  document.getElementById("tabApps").classList.toggle("hidden", which !== "apps");
-  document.getElementById("tabRecs").classList.toggle("hidden", which !== "recs");
-  if (which === "recs") loadRecs();
-}
+    function renderStats() {
+        const total = applications.length;
+        const submitted = applications.filter(a => a.status === "Submitted").length;
+        const scored = applications.filter(a => (a.scores || []).length > 0).length;
+        const pendingRecs = applications.reduce((n, a) => n + (a.recommenders || []).filter(r => r.status !== "Submitted").length, 0);
+        
+        const cards = [
+            { label: "Total Applications", value: total, sub: submitted + " fully submitted" },
+            { label: "Awaiting Review", value: submitted - scored, sub: scored + " evaluations completed" },
+            { label: "Pending Recommenders", value: pendingRecs, sub: "Action required by teachers" },
+            { label: "Lower School", value: applications.filter(a => a.track === "Budding Scholar").length, sub: "Grades K–2" },
+            { label: "Upper School", value: applications.filter(a => a.track !== "Budding Scholar").length, sub: "Grades 3–8" }
+        ];
+        
+        document.getElementById("statsBar").innerHTML = cards.map(c => `
+            <div class="bg-white rounded-xl p-5 border border-[var(--clr-border)] shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-[var(--clr-gold)] opacity-50"></div>
+                <div class="section-label mb-2">${c.label}</div>
+                <div class="text-3xl font-serif font-medium text-[var(--clr-forest)] mb-1">${c.value}</div>
+                <div class="text-xs text-stone-500 font-medium">${c.sub}</div>
+            </div>`).join("");
+    }
 
-async function loadRecs() {
-  const r = await callBackend({ action:"listRecommendations", token: idToken });
-  if (r.status !== "success") { alert(r.message); return; }
-  const items = r.items || [];
-  if (!items.length) { document.getElementById("recsTable").innerHTML='<div class="p-8 text-center text-gray-500">No recommendations sent yet.</div>'; return; }
-  const rows = items.map(x => `<tr class="border-t border-gray-100">
-    <td class="p-3"><div class="font-semibold">${escapeHtml(x.studentName||"")}</div><div class="text-xs text-gray-500">${escapeHtml(x.studentId||"")}</div></td>
-    <td class="p-3">${trackChip(x.track)}</td>
-    <td class="p-3"><div>${escapeHtml(x.teacherName||"")}</div><div class="text-xs text-gray-500">${escapeHtml(x.teacherEmail||"")}</div></td>
-    <td class="p-3 text-xs">${escapeHtml(x.school||"")}</td>
-    <td class="p-3"><span class="chip ${x.status==='Submitted'?'chip-done':'chip-sent'}">${escapeHtml(x.status||"")}</span></td>
-    <td class="p-3 text-xs">${x.submittedOn ? new Date(x.submittedOn).toLocaleDateString() : "—"}</td>
-    <td class="p-3">${x.status==='Submitted' ? `<button onclick='viewRec(${JSON.stringify(x).replace(/'/g,"&#39;")})' class="btn-ghost text-xs">View</button>` : ""}</td>
-  </tr>`).join("");
-  document.getElementById("recsTable").innerHTML = `<table class="w-full text-sm">
-    <thead class="bg-amber-50/60 text-xs uppercase tracking-wide text-gray-600">
-      <tr><th class="p-3 text-left">Student</th><th class="p-3 text-left">Track</th><th class="p-3 text-left">Recommender</th>
-          <th class="p-3 text-left">School</th><th class="p-3 text-left">Status</th>
-          <th class="p-3 text-left">Submitted</th><th></th></tr>
-    </thead><tbody>${rows}</tbody></table>`;
-}
+    function trackChip(t) {
+        const cls = t === "Budding Scholar" ? "track-budding" : t === "Junior Innovator" ? "track-junior" : "track-future";
+        return `<span class="chip ${cls}">${t || "—"}</span>`;
+    }
 
-function viewRec(rec) {
-  document.getElementById("modalTitle").textContent = "Recommendation — " + rec.studentName;
-  document.getElementById("modalSub").textContent = `${rec.teacherName} (${rec.teacherEmail}) · ${rec.track}`;
-  const resp = rec.responses || {};
-  const rows = Object.keys(resp).map(k => `<tr class="border-b border-gray-100"><td class="py-2 pr-4 text-gray-600 align-top">${escapeHtml(k)}</td><td class="py-2"><strong>${escapeHtml(String(resp[k]))}</strong></td></tr>`).join("");
-  document.getElementById("modalBody").innerHTML = rows ? `<table class="w-full text-sm">${rows}</table>` : "<p class='text-gray-500'>No responses.</p>";
-  document.getElementById("modal").classList.remove("hidden");
-}
+    function renderApps() {
+        const q = (document.getElementById("searchBox").value || "").toLowerCase();
+        const tf = document.getElementById("trackFilter").value;
+        const sf = document.getElementById("statusFilter").value;
+        
+        const filtered = applications.filter(a => {
+            if (tf && a.track !== tf) return false;
+            if (sf && a.status !== sf) return false;
+            if (q) {
+                const hay = [a.studentName, a.studentEmail, a.parentEmail, a.studentId].join(" ").toLowerCase();
+                if (!hay.includes(q)) return false;
+            }
+            return true;
+        });
 
-// ── APPLICATION DETAIL MODAL ──
-function openModal(studentId) {
-  const a = applications.find(x => String(x.studentId) === String(studentId));
-  if (!a) return;
-  document.getElementById("modalTitle").textContent = a.studentName;
-  document.getElementById("modalSub").textContent = `${a.studentId} · Grade ${a.grade} · ${a.track}`;
+        if (!filtered.length) {
+            document.getElementById("appsTable").innerHTML = '<div class="p-12 text-center text-stone-500 font-medium">No matching applications found.</div>';
+            return;
+        }
 
-  const filesHtml = Object.entries(a.files||{}).filter(([,v]) => v).map(([k,v]) =>
-    `<a href="${escapeHtml(v)}" target="_blank" class="inline-block btn-ghost text-xs mr-2 mb-2">📄 Form ${k}</a>`
-  ).join("") || '<span class="text-gray-500 text-sm">No files uploaded.</span>';
+        const initials = s => (s || "?").toString().trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+        
+        const rows = filtered.map(a => {
+            const invited = a.recommenders || [];
+            const recCount = invited.length;
+            const recDone = invited.filter(r => r.status === "Submitted").length;
+            const nomCount = [a.teacher1, a.teacher2].filter(t => t && t.email).length;
+            const scoreCount = (a.scores || []).length;
+            const avg = scoreCount ? (a.scores.reduce((s, x) => s + Number(x.total || 0), 0) / scoreCount).toFixed(1) : "—";
+            
+            const recLabel = recCount > 0
+                ? `<span class="px-2 py-1 rounded-md text-xs font-semibold ${recDone === recCount ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">${recDone}/${recCount} Recs</span>`
+                : (nomCount > 0 ? `<span class="text-stone-400 italic text-xs">${nomCount} Nominated</span>` : `<span class="text-stone-300">—</span>`);
+            
+            return `
+            <tr class="cursor-pointer group" onclick='openModal(${JSON.stringify(a.studentId)})'>
+                <td class="p-4 pl-6 border-b border-[var(--clr-border)]">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-stone-100 to-stone-200 text-[var(--clr-forest)] flex items-center justify-center font-bold text-sm border border-stone-200 group-hover:border-stone-300 transition-colors">${initials(a.studentName)}</div>
+                        <div>
+                            <div class="font-semibold text-[var(--clr-text-main)] group-hover:text-[var(--clr-forest)] transition-colors">${escapeHtml(a.studentName || "")}</div>
+                            <div class="text-xs text-stone-400 font-mono mt-0.5">${escapeHtml(a.studentId || "")}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="p-4 border-b border-[var(--clr-border)] text-sm font-medium text-stone-600">Grade ${escapeHtml(a.grade || "")}</td>
+                <td class="p-4 border-b border-[var(--clr-border)]">${trackChip(a.track)}</td>
+                <td class="p-4 border-b border-[var(--clr-border)] text-sm text-stone-500">${escapeHtml(a.parentEmail || "")}</td>
+                <td class="p-4 border-b border-[var(--clr-border)]"><span class="chip ${a.status === 'Submitted' ? 'chip-sent' : 'chip-pending'}">${escapeHtml(a.status || "—")}</span></td>
+                <td class="p-4 border-b border-[var(--clr-border)]">${recLabel}</td>
+                <td class="p-4 pr-6 border-b border-[var(--clr-border)] text-sm">
+                    ${scoreCount ? `<div class="flex items-center gap-1.5"><span class="font-bold text-[var(--clr-forest)]">${avg}</span><span class="text-[10px] text-stone-400 font-medium tracking-wider uppercase">(${scoreCount} Eval)</span></div>` : "<span class='text-stone-300'>—</span>"}
+                </td>
+            </tr>`;
+        }).join("");
 
-  // ── Merge parent-nominated teachers (from Applications sheet L2_*) with already-invited recs ──
-  const invited = a.recommenders || [];
-  const invitedEmails = new Set(invited.map(r => (r.teacherEmail||"").toLowerCase().trim()).filter(Boolean));
-  const nominated = [];
-  [a.teacher1, a.teacher2].forEach((t, idx) => {
-    if (!t || !t.email) return;
-    const em = t.email.toLowerCase().trim();
-    if (!invitedEmails.has(em)) nominated.push({ ...t, slot: idx + 1 });
-  });
+        document.getElementById("appsTable").innerHTML = `
+        <table class="w-full text-left border-collapse whitespace-nowrap">
+            <thead class="bg-stone-50/50 uppercase text-[10px] tracking-wider text-stone-500">
+                <tr>
+                    <th class="p-4 pl-6 font-semibold">Applicant Profile</th>
+                    <th class="p-4 font-semibold">Level</th>
+                    <th class="p-4 font-semibold">Track</th>
+                    <th class="p-4 font-semibold">Primary Contact</th>
+                    <th class="p-4 font-semibold">Status</th>
+                    <th class="p-4 font-semibold">Recommendations</th>
+                    <th class="p-4 pr-6 font-semibold">Avg Score</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>`;
+    }
 
-  const initials = s => (s||"?").toString().trim().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
-  const renderRec = (r, isNominated) => {
-    const auto = !isNominated && r.status === 'Submitted' && r.responses ? scoreRecommendation(a.track, r.responses) : null;
-    return `
-    <div class="rec-row ${isNominated?'nominated':''}">
-      <div class="flex items-center gap-3 min-w-0 flex-1">
-        <div class="rec-avatar">${initials(r.teacherName||r.name)}</div>
-        <div class="min-w-0 flex-1">
-          <div class="font-semibold truncate">${escapeHtml(r.teacherName||r.name||"(unnamed)")}</div>
-          <div class="text-xs text-gray-500 truncate">${escapeHtml(r.teacherEmail||r.email||"")}${r.school?` · ${escapeHtml(r.school)}`:""}</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2 flex-shrink-0">
-        ${auto ? scoreBadge(auto.pct) : ""}
-        ${isNominated
-          ? `<span class="chip chip-nominated">Nominated by parent</span>
-             <button onclick='inviteNominated(${JSON.stringify(a.studentId)}, ${JSON.stringify(r)})' class="btn-gold text-xs">Send Link</button>`
-          : `<span class="chip ${r.status==='Submitted'?'chip-done':'chip-sent'}">${r.status==='Submitted'?'✓ Submitted':'⧗ '+(r.status||'Sent')}</span>
-             ${r.status==='Submitted' && r.responses ? `<button onclick='viewRecFromApp(${JSON.stringify(a.studentId)}, ${JSON.stringify(r.teacherEmail||'')})' class="btn-ghost text-xs">View</button>` : ""}`}
-      </div>
-    </div>`;
-  };
+    function switchTab(which, el) {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        el.classList.add("active");
+        document.getElementById("tabApps").classList.toggle("hidden", which !== "apps");
+        document.getElementById("tabRecs").classList.toggle("hidden", which !== "recs");
+        if (which === "recs") loadRecs();
+    }
 
-  const allRecsHtml =
-    (nominated.length || invited.length)
-      ? (nominated.map(r => renderRec(r, true)).join("") + invited.map(r => renderRec(r, false)).join(""))
-      : '<p class="text-sm text-gray-500 italic">No recommenders nominated or invited yet.</p>';
+    async function loadRecs() {
+        const r = await callBackend({ action: "listRecommendations", token: idToken });
+        if (r.status !== "success") { alert(r.message); return; }
+        const items = r.items || [];
+        if (!items.length) {
+            document.getElementById("recsTable").innerHTML = '<div class="p-12 text-center text-stone-500 font-medium">No recommendations sent yet.</div>';
+            return;
+        }
+        
+        const rows = items.map(x => `
+        <tr class="hover:bg-stone-50 transition border-b border-[var(--clr-border)]">
+            <td class="p-4 pl-6">
+                <div class="font-medium text-stone-800">${escapeHtml(x.studentName || "")}</div>
+                <div class="text-xs text-stone-400 font-mono mt-0.5">${escapeHtml(x.studentId || "")}</div>
+            </td>
+            <td class="p-4">${trackChip(x.track)}</td>
+            <td class="p-4">
+                <div class="font-medium text-stone-700">${escapeHtml(x.teacherName || "")}</div>
+                <div class="text-xs text-stone-500 mt-0.5">${escapeHtml(x.teacherEmail || "")}</div>
+            </td>
+            <td class="p-4 text-sm text-stone-600">${escapeHtml(x.school || "")}</td>
+            <td class="p-4"><span class="chip ${x.status === 'Submitted' ? 'chip-done' : 'chip-sent'}">${escapeHtml(x.status || "")}</span></td>
+            <td class="p-4 text-sm text-stone-500">${x.submittedOn ? new Date(x.submittedOn).toLocaleDateString() : "—"}</td>
+            <td class="p-4 pr-6 text-right">
+                ${x.status === 'Submitted' ? `<button onclick='viewRec(${JSON.stringify(x).replace(/'/g, "&#39;")})' class="btn-ghost text-xs">Read</button>` : ""}
+            </td>
+        </tr>`).join("");
+        
+        document.getElementById("recsTable").innerHTML = `
+        <table class="w-full text-left border-collapse whitespace-nowrap">
+            <thead class="bg-stone-50/50 uppercase text-[10px] tracking-wider text-stone-500">
+                <tr>
+                    <th class="p-4 pl-6">Student</th>
+                    <th class="p-4">Track</th>
+                    <th class="p-4">Teacher / Recommender</th>
+                    <th class="p-4">Institution</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4">Date</th>
+                    <th class="p-4 pr-6"></th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>`;
+    }
 
-  const quickInviteBtn = nominated.length >= 2
-    ? `<button onclick='inviteAllNominated(${JSON.stringify(a.studentId)})' class="btn-primary text-xs">✉ Send to All Nominated</button>` : "";
+    function viewRec(rec) {
+        // Use the modal for full Rec view from Recs tab
+        document.getElementById("modalTitle").textContent = rec.studentName;
+        document.getElementById("modalSub").textContent = `Recommendation by ${rec.teacherName}`;
+        document.getElementById("modalStatusBadge").innerHTML = trackChip(rec.track);
+        
+        const resp = rec.responses || {};
+        const rows = Object.keys(resp).map(k => `
+        <div class="py-4 border-b border-stone-100 last:border-0">
+            <p class="text-xs font-bold text-stone-400 uppercase tracking-wide mb-1">${escapeHtml(k)}</p>
+            <p class="text-sm text-stone-800 font-medium">${escapeHtml(String(resp[k]))}</p>
+        </div>`).join("");
+        
+        document.getElementById("modalLeftCol").innerHTML = `<div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">${rows || "<p class='text-stone-500'>No responses.</p>"}</div>`;
+        document.getElementById("modalRightCol").innerHTML = `<div class="p-6 bg-stone-50 rounded-xl border border-stone-200 text-center"><p class="text-sm text-stone-500">Read-only view from Directory.</p></div>`;
+        
+        document.getElementById("modal").classList.add("active");
+    }
 
-  const myScore = (a.scores||[]).find(s => (s.scorer||"").toLowerCase() === (currentEmail||"").toLowerCase()) || {};
-  const submittedDate = a.timestamp ? new Date(a.timestamp).toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"}) : "—";
+    // ── APPLICATION DETAIL MODAL ──
+    function openModal(studentId) {
+        const a = applications.find(x => String(x.studentId) === String(studentId));
+        if (!a) return;
+        
+        // Header
+        document.getElementById("modalTitle").textContent = a.studentName;
+        document.getElementById("modalStatusBadge").innerHTML = `<span class="chip ${a.status === 'Submitted' ? 'chip-sent' : 'chip-pending'} shadow-sm">${escapeHtml(a.status || "")}</span>`;
+        document.getElementById("modalSub").textContent = `ID: ${a.studentId} • Grade ${a.grade} • ${a.track}`;
 
-  document.getElementById("modalBody").innerHTML = `
-    <div class="mb-6 pb-5 border-b border-gray-200">
-      <div class="flex flex-wrap items-center gap-2 mb-3">${trackChip(a.track)} <span class="chip chip-sent">${escapeHtml(a.status||"")}</span>
-        <span class="text-xs text-gray-400 ml-auto">Submitted ${submittedDate}</span>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-        <div><div class="section-label">Parent</div><div class="mt-1">${escapeHtml(a.parentEmail||"—")}</div></div>
-        <div><div class="section-label">Student Email</div><div class="mt-1">${escapeHtml(a.studentEmail||"—")}</div></div>
-        <div><div class="section-label">Grade</div><div class="mt-1">${escapeHtml(a.grade||"—")}</div></div>
-        <div><div class="section-label">Student ID</div><div class="mt-1 font-mono text-xs">${escapeHtml(a.studentId||"—")}</div></div>
-      </div>
-      ${a.folderLink ? `<a href="${escapeHtml(a.folderLink)}" target="_blank" class="btn-gold text-xs inline-block mt-4">Open Drive Folder ↗</a>` : ""}
-    </div>
-
-    <div class="mb-6">
-      <div class="section-label mb-2">Uploaded Forms</div>
-      ${filesHtml}
-    </div>
-
-    <div class="mb-6">
-      <div class="flex items-center justify-between mb-3">
-        <div class="section-label">Recommenders</div>
-        <div class="flex gap-2">
-          ${quickInviteBtn}
-          <button onclick="showRecForm('${a.studentId}')" class="btn-ghost text-xs">+ Add manually</button>
-        </div>
-      </div>
-      ${allRecsHtml}
-      ${(() => {
-        const agg = aggregateRecScores(a);
-        if (!agg) return "";
-        return `<div class="mt-3 p-3 rounded-lg flex items-center justify-between" style="background:linear-gradient(to right,#fffef8,#f5ecd0);border:1px solid var(--clr-gold);">
-          <div>
-            <div class="section-label">Auto-Scored Average</div>
-            <div class="text-xs text-gray-600 mt-1">Computed from ${agg.count} submitted recommendation${agg.count>1?'s':''} using the ${escapeHtml(a.track)} rubric.</div>
-          </div>
-          <div class="text-right">
-            <div class="text-3xl font-bold" style="color:var(--clr-forest);">${agg.avgPct}<span class="text-base text-gray-400">/100</span></div>
-          </div>
+        // ── Left Column Construction (Info, Files, Recs) ──
+        const submittedDate = a.timestamp ? new Date(a.timestamp).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : "—";
+        
+        let leftHtml = `
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
+                <div class="section-label mb-1">Primary Contact (Parent)</div>
+                <div class="text-sm font-medium text-stone-800 break-all">${escapeHtml(a.parentEmail || "—")}</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
+                <div class="section-label mb-1">Application Date</div>
+                <div class="text-sm font-medium text-stone-800">${submittedDate}</div>
+            </div>
         </div>`;
-      })()}
-    </div>
 
-    <div id="recFormWrap" class="hidden card p-4 mb-6" style="background:var(--clr-gold-light);border:1px solid var(--clr-gold);"></div>
+        // Files
+        const filesHtml = Object.entries(a.files || {}).filter(([, v]) => v).map(([k, v]) =>
+            `<a href="${escapeHtml(v)}" target="_blank" class="flex items-center gap-2 px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg hover:border-[var(--clr-gold)] hover:bg-white transition text-sm font-medium text-stone-700">
+                <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Document ${k}
+            </a>`
+        ).join("");
+        
+        leftHtml += `
+        <div>
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-serif text-lg text-[var(--clr-forest)]">Application Materials</h3>
+                ${a.folderLink ? `<a href="${escapeHtml(a.folderLink)}" target="_blank" class="text-xs font-semibold text-[var(--clr-gold)] hover:text-yellow-600 flex items-center gap-1">Open Full Drive ↗</a>` : ""}
+            </div>
+            <div class="flex flex-wrap gap-2">
+                ${filesHtml || '<span class="text-stone-400 text-sm italic">No files provided.</span>'}
+            </div>
+        </div>`;
 
-    <div class="section-label mb-3">Your Evaluation</div>
-    ${scoreFormHtml(a, myScore)}
-  `;
+        // Recommenders
+        const invited = a.recommenders || [];
+        const invitedEmails = new Set(invited.map(r => (r.teacherEmail || "").toLowerCase().trim()).filter(Boolean));
+        const nominated = [];
+        [a.teacher1, a.teacher2].forEach((t, idx) => {
+            if (!t || !t.email) return;
+            if (!invitedEmails.has(t.email.toLowerCase().trim())) nominated.push({ ...t, slot: idx + 1 });
+        });
 
-  document.getElementById("modal").classList.remove("hidden");
-}
+        const initials = s => (s || "?").toString().trim().split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+        
+        const renderRec = (r, isNominated) => {
+            const auto = !isNominated && r.status === 'Submitted' && r.responses ? scoreRecommendation(a.track, r.responses) : null;
+            return `
+            <div class="rec-row ${isNominated ? 'nominated' : ''}">
+                <div class="flex items-center gap-4 min-w-0 flex-1">
+                    <div class="rec-avatar">${initials(r.teacherName || r.name)}</div>
+                    <div class="min-w-0">
+                        <div class="font-semibold text-stone-800 truncate text-sm">${escapeHtml(r.teacherName || r.name || "Unnamed Teacher")}</div>
+                        <div class="text-xs text-stone-500 truncate">${escapeHtml(r.teacherEmail || r.email || "")}${r.school ? ` • ${escapeHtml(r.school)}` : ""}</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 flex-shrink-0">
+                    ${auto ? scoreBadge(auto.pct) : ""}
+                    ${isNominated 
+                        ? `<div class="flex flex-col items-end gap-1"><span class="chip chip-nominated">Parent Nominated</span><button onclick='inviteNominated(${JSON.stringify(a.studentId)}, ${JSON.stringify(r)})' class="text-xs font-bold text-[var(--clr-sage)] hover:text-[var(--clr-forest)] underline">Send Invite Form</button></div>` 
+                        : `<span class="chip ${r.status === 'Submitted' ? 'chip-done' : 'chip-sent'}">${r.status === 'Submitted' ? '✓ Received' : 'Pending'}</span>
+                           ${r.status === 'Submitted' && r.responses ? `<button onclick='viewRecFromApp(${JSON.stringify(a.studentId)}, ${JSON.stringify(r.teacherEmail || '')})' class="btn-ghost py-1 px-2 text-xs">Read</button>` : ""}`
+                    }
+                </div>
+            </div>`;
+        };
 
-// ── Invite a nominated teacher (one-click from the list) ──
-async function inviteNominated(studentId, teacher) {
-  const rec = { name: teacher.teacherName || teacher.name || "", email: teacher.teacherEmail || teacher.email || "", school: teacher.school || "" };
-  if (!rec.email) { alert("No email on file."); return; }
-  const r = await callBackend({ action:"sendRecommenderLinks", token: idToken, studentId, recommenders:[rec], recommenderUrl: RECOMMENDER_URL });
-  if (r.status !== "success") { alert(r.message||"Failed."); return; }
-  const sent = (r.results||[]).filter(x=>x.status==="sent").length;
-  alert(sent ? "Invitation sent to " + rec.email : "Failed to send.");
-  await loadApplications(); openModal(studentId);
-}
+        const allRecsHtml = (nominated.length || invited.length)
+            ? (nominated.map(r => renderRec(r, true)).join("") + invited.map(r => renderRec(r, false)).join(""))
+            : '<div class="p-6 text-center border border-dashed border-stone-300 rounded-xl bg-stone-50"><p class="text-sm text-stone-500 font-medium">No recommenders nominated or invited yet.</p></div>';
 
-async function inviteAllNominated(studentId) {
-  const a = applications.find(x => String(x.studentId) === String(studentId));
-  if (!a) return;
-  const invitedEmails = new Set((a.recommenders||[]).map(r => (r.teacherEmail||"").toLowerCase().trim()));
-  const recs = [a.teacher1, a.teacher2].filter(t => t && t.email && !invitedEmails.has(t.email.toLowerCase().trim()))
-    .map(t => ({ name: t.name, email: t.email, school: t.school }));
-  if (!recs.length) { alert("No nominated teachers to invite."); return; }
-  if (!confirm(`Send secure recommendation links to ${recs.length} teacher(s)?`)) return;
-  const r = await callBackend({ action:"sendRecommenderLinks", token: idToken, studentId, recommenders: recs, recommenderUrl: RECOMMENDER_URL });
-  if (r.status !== "success") { alert(r.message||"Failed."); return; }
-  alert("Sent " + (r.results||[]).filter(x=>x.status==="sent").length + " invitation(s).");
-  await loadApplications(); openModal(studentId);
-}
+        const quickInviteBtn = nominated.length >= 2
+            ? `<button onclick='inviteAllNominated(${JSON.stringify(a.studentId)})' class="text-xs font-bold text-[var(--clr-forest)] bg-[var(--clr-gold-light)] px-3 py-1.5 rounded-md hover:bg-[#f2e6c4] transition">✉ Invite All Nominated</button>` : "";
 
-function scoreFormHtml(a, s) {
-  const rubric = rubricForTrack(a.track);
-  const maxTotal = rubric.reduce((x,c)=>x+c.max,0);
-  const currentTotal = Number(s.academic||0)+Number(s.character||0)+Number(s.essay||0)+Number(s.need||0);
-  const agg = aggregateRecScores(a);
-  const charRubric = rubric.find(c => c.key === "character");
-  const suggestedChar = agg && charRubric ? Math.round(agg.avgPct / 100 * charRubric.max) : null;
-  return `
-  <div class="card p-5" style="border:1.5px solid var(--clr-gold);background:linear-gradient(to bottom,#fffef8,#fff);">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-      ${rubric.map(c => {
-        const suggestion = (c.key === "character" && suggestedChar !== null)
-          ? `<button type="button" onclick="applySuggestion(${suggestedChar})" class="text-[10px] text-[var(--clr-sage)] underline hover:text-[var(--clr-forest)] ml-1" title="Auto-calculated from recommender responses">suggest ${suggestedChar}</button>` : "";
-        return `<div>
-        <label class="flex items-baseline justify-between mb-1">
-          <span class="text-xs font-bold uppercase tracking-wide" style="color:var(--clr-forest);">${c.label}</span>
-          <span class="text-[10px] text-gray-400">of ${c.max}${suggestion}</span>
-        </label>
-        <input type="number" min="0" max="${c.max}" value="${s[c.key]??""}" data-score="${c.key}" data-max="${c.max}" class="form-input score-input" onchange="updateTotal()" oninput="updateTotal()">
-        <p class="text-[11px] text-gray-500 mt-1 leading-snug">${c.desc}</p>
-      </div>`;
-      }).join("")}
-    </div>
+        leftHtml += `
+        <div>
+            <div class="flex items-center justify-between mb-4 pb-2 border-b border-stone-200">
+                <h3 class="font-serif text-lg text-[var(--clr-forest)]">Teacher Recommendations</h3>
+                <div class="flex items-center gap-3">
+                    ${quickInviteBtn}
+                    <button onclick="showRecForm('${a.studentId}')" class="text-xs font-bold text-stone-500 hover:text-stone-800 transition">+ Add Manual</button>
+                </div>
+            </div>
+            ${allRecsHtml}
+            <div id="recFormWrap" class="hidden mt-4 p-5 rounded-xl border border-[var(--clr-gold)] bg-[var(--clr-gold-light)] shadow-inner"></div>
+            
+            ${(() => {
+                const agg = aggregateRecScores(a);
+                if (!agg) return "";
+                return `
+                <div class="mt-4 p-4 rounded-xl bg-gradient-to-br from-white to-[#fbfaf6] border border-[#e8dfc3] flex items-center justify-between shadow-sm">
+                    <div>
+                        <div class="section-label text-[var(--clr-sage)]">AI-Assisted Pre-Score</div>
+                        <div class="text-xs text-stone-500 mt-1 font-medium">Aggregated from ${agg.count} submitted rubric${agg.count > 1 ? 's' : ''}.</div>
+                    </div>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-3xl font-serif font-bold text-[var(--clr-forest)]">${agg.avgPct}</span>
+                        <span class="text-sm font-bold text-stone-400">/100</span>
+                    </div>
+                </div>`;
+            })()}
+        </div>`;
+        
+        document.getElementById("modalLeftCol").innerHTML = leftHtml;
 
-    <div class="flex flex-wrap items-end gap-4 mb-4 pt-4 border-t border-amber-200">
-      <div class="flex-1 min-w-[200px]">
-        <label class="section-label block mb-1">Recommendation</label>
-        <select id="rec_recommendation" class="form-input">
-          ${["Pending","Approve","Conditional","Deny"].map(x=>`<option ${s.recommendation===x?"selected":""}>${x}</option>`).join("")}
-        </select>
-      </div>
-      <div class="text-right">
-        <div class="section-label">Total Score</div>
-        <div class="mt-1"><span id="scoreTotal" class="text-3xl font-bold" style="color:var(--clr-forest);">${currentTotal}</span>
-          <span class="text-gray-400 text-lg">/ ${maxTotal}</span></div>
-      </div>
-    </div>
+        // ── Right Column Construction (Scoring Rubric) ──
+        const myScore = (a.scores || []).find(s => (s.scorer || "").toLowerCase() === (currentEmail || "").toLowerCase()) || {};
+        document.getElementById("modalRightCol").innerHTML = scoreFormHtml(a, myScore);
 
-    <label class="section-label block mb-2">Committee Notes <span class="text-gray-400 normal-case tracking-normal text-[11px]">(private)</span></label>
-    <textarea id="rec_notes" class="form-input" rows="3" placeholder="Private notes visible only to the Scholarship Committee…">${escapeHtml(s.notes||"")}</textarea>
-    <div class="flex items-center justify-between mt-4">
-      <p class="text-[11px] text-gray-500">${s.timestamp ? "Last saved " + new Date(s.timestamp).toLocaleString() : "Not yet scored"}</p>
-      <button onclick='saveScore(${JSON.stringify(a.studentId)}, ${JSON.stringify(a.studentName)}, ${JSON.stringify(a.track)})' class="btn-primary text-sm">Save Evaluation</button>
-    </div>
-  </div>`;
-}
-
-// ═══════════════════════════════════════════════════════════════
-// AUTO-SCORING for recommender responses
-// Normalized to 0–100 per track; weights reflect the PDF rubrics.
-// ═══════════════════════════════════════════════════════════════
-const REC_SCORING = {
-  "Budding Scholar": {
-    maxRaw: 18,
-    fields: {
-      "t_social":  { "Consistently":3, "Emerging (Sometimes)":2, "Needs Support":1 },
-      "t_emotion": { "Consistently":3, "Emerging (Sometimes)":2, "Needs Support":1 },
-      "t_norms":   { "Consistently":3, "Emerging (Sometimes)":2, "Needs Support":1 },
-      "t_effort":  { "Consistently":3, "Emerging (Sometimes)":2, "Needs Support":1 },
-      "r_family":  { "Yes, supportive":3, "Inconsistent":2, "No / Disengaged":0 },
-      "r_overall": {
-        "Recommended (positive addition to the class)":3,
-        "Conditional (needs specific behavioral goals)":2,
-        "Not Recommended (significant concerns)":0
-      }
+        // Show Modal
+        document.getElementById("modal").classList.add("active");
     }
-  },
-  "Junior Innovator": {
-    maxRaw: 21,
-    fields: {
-      "t_responsibility": { "Consistently":3, "Sometimes":2, "Rarely":1 },
-      "t_kindness":       { "Consistently":3, "Sometimes":2, "Rarely":1 },
-      "t_resilience":     { "Consistently":3, "Sometimes":2, "Rarely":1 },
-      "t_selfcontrol":    { "Consistently":3, "Sometimes":2, "Rarely":1 },
-      "r_infractions":    { "No":3, "Yes":0 },
-      "r_extramile":      { "Yes, frequently":3, "Occasionally":2, "No, they generally stick to their own tasks":1 },
-      "r_endorsement":    { "Yes, I support this":3, "Yes, with some hesitation":2, "No":0 }
+
+    // ── SCORING FORM (Right Panel) ──
+    function scoreFormHtml(a, s) {
+        const rubric = rubricForTrack(a.track);
+        const maxTotal = rubric.reduce((x, c) => x + c.max, 0);
+        const currentTotal = Number(s.academic || 0) + Number(s.character || 0) + Number(s.essay || 0) + Number(s.need || 0);
+        
+        const agg = aggregateRecScores(a);
+        const charRubric = rubric.find(c => c.key === "character");
+        const suggestedChar = agg && charRubric ? Math.round(agg.avgPct / 100 * charRubric.max) : null;
+
+        return `
+        <div class="bg-white rounded-2xl border border-[var(--clr-gold)] shadow-xl overflow-hidden flex flex-col h-[calc(90vh-8rem)]">
+            <div class="bg-[var(--clr-gold-light)] p-5 border-b border-[#e8dfc3]">
+                <h3 class="font-serif text-xl text-[var(--clr-forest)]">Committee Evaluation</h3>
+                <p class="text-xs text-stone-500 mt-1 font-medium">Confidential Review Rubric</p>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1 space-y-6">
+                <div class="space-y-4">
+                    ${rubric.map(c => {
+                        const suggestion = (c.key === "character" && suggestedChar !== null) ? `<button type="button" onclick="applySuggestion(${suggestedChar})" class="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded ml-2 hover:bg-emerald-100 transition" title="Based on teacher ratings">Auto-Fill: ${suggestedChar}</button>` : "";
+                        return `
+                        <div class="group">
+                            <div class="flex items-end justify-between mb-2">
+                                <div>
+                                    <label class="text-sm font-bold text-[var(--clr-text-main)]">${c.label}</label>
+                                    ${suggestion}
+                                    <p class="text-[11px] text-stone-400 font-medium leading-tight mt-0.5">${c.desc}</p>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <span class="text-[10px] font-bold text-stone-400 uppercase mr-2">Max ${c.max}</span>
+                                    <input type="number" min="0" max="${c.max}" value="${s[c.key] ?? ""}" data-score="${c.key}" class="w-16 text-center font-bold text-lg p-1.5 border border-stone-200 rounded-md focus:border-[var(--clr-gold)] focus:ring-1 focus:ring-[var(--clr-gold)] outline-none transition bg-stone-50 focus:bg-white" onchange="updateTotal()" oninput="updateTotal()">
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join("<hr class='border-stone-100'>")}
+                </div>
+
+                <div class="pt-6 border-t border-[var(--clr-gold)]/30">
+                    <label class="text-sm font-bold text-[var(--clr-text-main)] block mb-2">Final Recommendation</label>
+                    <select id="rec_recommendation" class="form-input bg-stone-50 font-medium text-stone-700">
+                        ${["Pending Review", "Approve Application", "Conditional Approval", "Deny Application"].map(x => `<option value="${x.split(' ')[0]}" ${s.recommendation === x.split(' ')[0] ? "selected" : ""}>${x}</option>`).join("")}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-sm font-bold text-[var(--clr-text-main)] flex justify-between items-baseline mb-2">
+                        Committee Notes
+                        <span class="text-[10px] font-medium text-stone-400 uppercase tracking-wider">Internal Only</span>
+                    </label>
+                    <textarea id="rec_notes" class="form-input bg-stone-50 text-sm resize-none" rows="3" placeholder="Add rationale or discussion points...">${escapeHtml(s.notes || "")}</textarea>
+                </div>
+            </div>
+
+            <div class="bg-stone-50 p-5 border-t border-stone-200 flex items-center justify-between">
+                <div>
+                    <div class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-0.5">Total Score</div>
+                    <div class="flex items-baseline gap-1">
+                        <span id="scoreTotal" class="text-3xl font-serif font-bold text-[var(--clr-forest)] leading-none">${currentTotal}</span>
+                        <span class="text-sm font-bold text-stone-400">/ ${maxTotal}</span>
+                    </div>
+                </div>
+                <button onclick='saveScore(${JSON.stringify(a.studentId)}, ${JSON.stringify(a.studentName)}, ${JSON.stringify(a.track)})' class="btn-primary shadow-lg shadow-green-900/10">Submit Evaluation</button>
+            </div>
+        </div>`;
     }
-  },
-  "Future Leader": {
-    maxRaw: 27,
-    fields: {
-      "t_integrity":  { "Exceptional (Top 10%)":4, "Good (Top 25%)":3, "Average":2, "Below Average":1, "No Basis":null },
-      "t_resilience": { "Exceptional (Top 10%)":4, "Good (Top 25%)":3, "Average":2, "Below Average":1, "No Basis":null },
-      "t_leadership": { "Exceptional (Top 10%)":4, "Good (Top 25%)":3, "Average":2, "Below Average":1, "No Basis":null },
-      "t_respect":    { "Exceptional (Top 10%)":4, "Good (Top 25%)":3, "Average":2, "Below Average":1, "No Basis":null },
-      "t_service":    { "Exceptional (Top 10%)":4, "Good (Top 25%)":3, "Average":2, "Below Average":1, "No Basis":null },
-      "r_obligations":{ "Yes":3, "Usually":2, "No":1 },
-      "r_overall":    {
-        "I enthusiastically recommend (One of my top students)":4,
-        "I strongly recommend":3,
-        "I recommend":2,
-        "I recommend with reservation":1
-      }
+
+    // Modal Utilities & Logic functions (kept structurally similar, styled differently where HTML is generated)
+    function closeModal() { document.getElementById("modal").classList.remove("active"); }
+
+    async function inviteNominated(studentId, teacher) {
+        const rec = { name: teacher.teacherName || teacher.name || "", email: teacher.teacherEmail || teacher.email || "", school: teacher.school || "" };
+        if (!rec.email) { alert("No email on file."); return; }
+        const r = await callBackend({ action: "sendRecommenderLinks", token: idToken, studentId, recommenders: [rec], recommenderUrl: RECOMMENDER_URL });
+        if (r.status !== "success") { alert(r.message || "Failed."); return; }
+        await loadApplications();
+        openModal(studentId);
     }
-  }
-};
 
-function scoreRecommendation(track, responses) {
-  const cfg = REC_SCORING[track];
-  if (!cfg || !responses) return null;
-  let earned = 0, possible = 0, scored = 0, skipped = 0;
-  const breakdown = [];
-  for (const key in cfg.fields) {
-    const ans = responses[key];
-    if (ans === undefined || ans === null || ans === "") continue;
-    const map = cfg.fields[key];
-    const pts = map[ans];
-    if (pts === null) { skipped++; breakdown.push({ key, ans, pts:"—" }); continue; }  // "No Basis" → exclude
-    const maxForField = Math.max(...Object.values(map).filter(v => v !== null));
-    if (typeof pts === "number") {
-      earned += pts; possible += maxForField; scored++;
-      breakdown.push({ key, ans, pts, max: maxForField });
+    async function inviteAllNominated(studentId) {
+        const a = applications.find(x => String(x.studentId) === String(studentId));
+        if (!a) return;
+        const invitedEmails = new Set((a.recommenders || []).map(r => (r.teacherEmail || "").toLowerCase().trim()));
+        const recs = [a.teacher1, a.teacher2].filter(t => t && t.email && !invitedEmails.has(t.email.toLowerCase().trim())).map(t => ({ name: t.name, email: t.email, school: t.school }));
+        if (!recs.length) return;
+        if (!confirm(`Send secure recommendation links to ${recs.length} teacher(s)?`)) return;
+        const r = await callBackend({ action: "sendRecommenderLinks", token: idToken, studentId, recommenders: recs, recommenderUrl: RECOMMENDER_URL });
+        if (r.status !== "success") { alert(r.message || "Failed."); return; }
+        await loadApplications();
+        openModal(studentId);
     }
-  }
-  if (!possible) return null;
-  const pct = (earned / possible) * 100;
-  return { earned, possible, pct: Math.round(pct), scored, skipped, breakdown };
-}
 
-// Aggregate all submitted recs for an application
-function aggregateRecScores(app) {
-  const submitted = (app.recommenders||[]).filter(r => r.status === "Submitted" && r.responses);
-  if (!submitted.length) return null;
-  const scores = submitted.map(r => scoreRecommendation(app.track, r.responses)).filter(Boolean);
-  if (!scores.length) return null;
-  const avgPct = Math.round(scores.reduce((s,x) => s + x.pct, 0) / scores.length);
-  return { avgPct, count: scores.length, individual: scores };
-}
+    // Scoring logic dictionaries (Unchanged)
+    const REC_SCORING = {
+        "Budding Scholar": { maxRaw: 18, fields: { "t_social": { "Consistently": 3, "Emerging (Sometimes)": 2, "Needs Support": 1 }, "t_emotion": { "Consistently": 3, "Emerging (Sometimes)": 2, "Needs Support": 1 }, "t_norms": { "Consistently": 3, "Emerging (Sometimes)": 2, "Needs Support": 1 }, "t_effort": { "Consistently": 3, "Emerging (Sometimes)": 2, "Needs Support": 1 }, "r_family": { "Yes, supportive": 3, "Inconsistent": 2, "No / Disengaged": 0 }, "r_overall": { "Recommended (positive addition to the class)": 3, "Conditional (needs specific behavioral goals)": 2, "Not Recommended (significant concerns)": 0 } } },
+        "Junior Innovator": { maxRaw: 21, fields: { "t_responsibility": { "Consistently": 3, "Sometimes": 2, "Rarely": 1 }, "t_kindness": { "Consistently": 3, "Sometimes": 2, "Rarely": 1 }, "t_resilience": { "Consistently": 3, "Sometimes": 2, "Rarely": 1 }, "t_selfcontrol": { "Consistently": 3, "Sometimes": 2, "Rarely": 1 }, "r_infractions": { "No": 3, "Yes": 0 }, "r_extramile": { "Yes, frequently": 3, "Occasionally": 2, "No, they generally stick to their own tasks": 1 }, "r_endorsement": { "Yes, I support this": 3, "Yes, with some hesitation": 2, "No": 0 } } },
+        "Future Leader": { maxRaw: 27, fields: { "t_integrity": { "Exceptional (Top 10%)": 4, "Good (Top 25%)": 3, "Average": 2, "Below Average": 1, "No Basis": null }, "t_resilience": { "Exceptional (Top 10%)": 4, "Good (Top 25%)": 3, "Average": 2, "Below Average": 1, "No Basis": null }, "t_leadership": { "Exceptional (Top 10%)": 4, "Good (Top 25%)": 3, "Average": 2, "Below Average": 1, "No Basis": null }, "t_respect": { "Exceptional (Top 10%)": 4, "Good (Top 25%)": 3, "Average": 2, "Below Average": 1, "No Basis": null }, "t_service": { "Exceptional (Top 10%)": 4, "Good (Top 25%)": 3, "Average": 2, "Below Average": 1, "No Basis": null }, "r_obligations": { "Yes": 3, "Usually": 2, "No": 1 }, "r_overall": { "I enthusiastically recommend (One of my top students)": 4, "I strongly recommend": 3, "I recommend": 2, "I recommend with reservation": 1 } } }
+    };
 
-function scoreBadge(pct) {
-  const color = pct >= 85 ? "emerald" : pct >= 70 ? "amber" : pct >= 50 ? "orange" : "rose";
-  const bg    = pct >= 85 ? "#d1fae5" : pct >= 70 ? "#fef3c7" : pct >= 50 ? "#ffedd5" : "#ffe4e6";
-  const fg    = pct >= 85 ? "#065f46" : pct >= 70 ? "#8a6a15" : pct >= 50 ? "#9a3412" : "#9f1239";
-  return `<span class="chip" style="background:${bg};color:${fg};">● ${pct}/100</span>`;
-}
-
-function rubricForTrack(track) {
-  // 100-point rubric per track
-  if (track === "Budding Scholar") return [
-    {key:"academic",   max:20, label:"Readiness",    desc:"Age-appropriate readiness"},
-    {key:"character",  max:40, label:"Citizenship",  desc:"Social/emotional, classroom norms"},
-    {key:"essay",      max:20, label:"Family Fit",   desc:"Family partnership & support"},
-    {key:"need",       max:20, label:"Financial Need", desc:"Demonstrated need"}
-  ];
-  if (track === "Junior Innovator") return [
-    {key:"academic",   max:25, label:"Academic",     desc:"Academic progress & curiosity"},
-    {key:"character",  max:30, label:"Grit & Citizenship", desc:"Teacher assessment traits"},
-    {key:"essay",      max:25, label:"Parent Essay", desc:"Parent essay clarity & fit"},
-    {key:"need",       max:20, label:"Financial Need", desc:"Demonstrated need"}
-  ];
-  return [
-    {key:"academic",   max:25, label:"Academic",     desc:"Transcript / performance"},
-    {key:"character",  max:25, label:"Character",    desc:"Recommender ratings"},
-    {key:"essay",      max:30, label:"Student Essay",desc:"Essay depth, voice, maturity"},
-    {key:"need",       max:20, label:"Financial Need", desc:"Demonstrated need"}
-  ];
-}
-
-function updateTotal() {
-  const inputs = document.querySelectorAll("[data-score]");
-  let t = 0; inputs.forEach(i => t += Number(i.value||0));
-  document.getElementById("scoreTotal").textContent = t;
-}
-
-function applySuggestion(val) {
-  const input = document.querySelector('[data-score="character"]');
-  if (!input) return;
-  input.value = val;
-  updateTotal();
-  input.focus();
-}
-
-// Detailed breakdown view for a submitted recommendation (with auto-score)
-function viewRecFromApp(studentId, teacherEmail) {
-  const a = applications.find(x => String(x.studentId) === String(studentId));
-  if (!a) return;
-  const r = (a.recommenders||[]).find(x => (x.teacherEmail||"").toLowerCase() === String(teacherEmail).toLowerCase());
-  if (!r) return;
-  const auto = scoreRecommendation(a.track, r.responses || {});
-  const resp = r.responses || {};
-
-  // Group keys nicely
-  const pretty = k => k.replace(/^t_/,"Trait · ").replace(/^r_/,"").replace(/^ta_/,"").replace(/_/g," ").replace(/\b\w/g, c=>c.toUpperCase());
-
-  const rowsHtml = Object.keys(resp).filter(k => !k.startsWith("_")).map(k => {
-    const ans = resp[k];
-    let pts = "";
-    if (auto) {
-      const f = auto.breakdown.find(b => b.key === k);
-      if (f) pts = f.pts === "—" ? `<span class="text-gray-400 text-xs">excluded (No Basis)</span>` : `<strong style="color:var(--clr-forest);">${f.pts}/${f.max}</strong>`;
+    function scoreRecommendation(track, responses) {
+        const cfg = REC_SCORING[track];
+        if (!cfg || !responses) return null;
+        let earned = 0, possible = 0, scored = 0, skipped = 0;
+        const breakdown = [];
+        for (const key in cfg.fields) {
+            const ans = responses[key];
+            if (ans === undefined || ans === null || ans === "") continue;
+            const map = cfg.fields[key];
+            const pts = map[ans];
+            if (pts === null) { skipped++; breakdown.push({ key, ans, pts: "—" }); continue; }
+            const maxForField = Math.max(...Object.values(map).filter(v => v !== null));
+            if (typeof pts === "number") { earned += pts; possible += maxForField; scored++; breakdown.push({ key, ans, pts, max: maxForField }); }
+        }
+        if (!possible) return null;
+        return { earned, possible, pct: Math.round((earned / possible) * 100), scored, skipped, breakdown };
     }
-    return `<tr class="border-b border-gray-100">
-      <td class="py-2 pr-4 align-top text-xs text-gray-600" style="width:35%;">${escapeHtml(pretty(k))}</td>
-      <td class="py-2 pr-4 align-top text-sm">${escapeHtml(String(ans))}</td>
-      <td class="py-2 align-top text-right text-sm" style="width:110px;">${pts}</td>
-    </tr>`;
-  }).join("");
 
-  const header = auto
-    ? `<div class="card p-4 mb-4 flex items-center justify-between" style="background:linear-gradient(to right,#fffef8,#f5ecd0);border:1px solid var(--clr-gold);">
-         <div>
-           <div class="section-label">Auto-Score</div>
-           <div class="text-xs text-gray-600 mt-1">${auto.scored} rated item${auto.scored>1?'s':''}${auto.skipped?`, ${auto.skipped} "No Basis" excluded`:""}</div>
-         </div>
-         <div class="text-right">
-           <div class="text-3xl font-bold" style="color:var(--clr-forest);">${auto.pct}<span class="text-base text-gray-400">/100</span></div>
-           <div class="text-xs text-gray-500">${auto.earned} of ${auto.possible} points</div>
-         </div>
-       </div>` : "";
+    function aggregateRecScores(app) {
+        const submitted = (app.recommenders || []).filter(r => r.status === "Submitted" && r.responses);
+        if (!submitted.length) return null;
+        const scores = submitted.map(r => scoreRecommendation(app.track, r.responses)).filter(Boolean);
+        if (!scores.length) return null;
+        return { avgPct: Math.round(scores.reduce((s, x) => s + x.pct, 0) / scores.length), count: scores.length, individual: scores };
+    }
 
-  document.getElementById("modalTitle").textContent = "Recommendation — " + a.studentName;
-  document.getElementById("modalSub").textContent = `${r.teacherName} (${r.teacherEmail}) · ${a.track}`;
-  document.getElementById("modalBody").innerHTML = header +
-    `<table class="w-full text-sm"><thead><tr class="text-xs text-gray-500 uppercase tracking-wide">
-       <th class="text-left pb-2">Question</th><th class="text-left pb-2">Response</th><th class="text-right pb-2">Score</th>
-     </tr></thead><tbody>${rowsHtml || '<tr><td colspan="3" class="text-gray-500 py-3">No responses recorded.</td></tr>'}</tbody></table>
-     <div class="mt-5 flex justify-end">
-       <button onclick='openModal(${JSON.stringify(studentId)})' class="btn-ghost text-sm">← Back to application</button>
-     </div>`;
-  document.getElementById("modal").classList.remove("hidden");
-}
+    function scoreBadge(pct) {
+        const color = pct >= 85 ? "text-emerald-700 bg-emerald-50 border-emerald-200" : pct >= 70 ? "text-amber-700 bg-amber-50 border-amber-200" : pct >= 50 ? "text-orange-700 bg-orange-50 border-orange-200" : "text-rose-700 bg-rose-50 border-rose-200";
+        return `<span class="chip border ${color} font-bold shadow-sm">Score: ${pct}/100</span>`;
+    }
 
-async function saveScore(studentId, studentName, track) {
-  const payload = {
-    action:"scoreApplication", token: idToken,
-    studentId, studentName, track,
-    recommendation: document.getElementById("rec_recommendation").value,
-    notes: document.getElementById("rec_notes").value
-  };
-  document.querySelectorAll("[data-score]").forEach(i => payload[i.dataset.score] = Number(i.value||0));
-  const r = await callBackend(payload);
-  if (r.status === "success") {
-    alert("Saved. Total: " + r.total);
-    await loadApplications();
-    openModal(studentId);
-  } else alert(r.message || "Failed.");
-}
+    function rubricForTrack(track) {
+        if (track === "Budding Scholar") return [{ key: "academic", max: 20, label: "Readiness", desc: "Age-appropriate development" }, { key: "character", max: 40, label: "Citizenship", desc: "Social/emotional & norms" }, { key: "essay", max: 20, label: "Family Fit", desc: "Partnership & support" }, { key: "need", max: 20, label: "Financial Need", desc: "Demonstrated necessity" }];
+        if (track === "Junior Innovator") return [{ key: "academic", max: 25, label: "Academic", desc: "Progress & curiosity" }, { key: "character", max: 30, label: "Grit & Citizenship", desc: "Teacher traits" }, { key: "essay", max: 25, label: "Parent Essay", desc: "Clarity & fit" }, { key: "need", max: 20, label: "Financial Need", desc: "Demonstrated necessity" }];
+        return [{ key: "academic", max: 25, label: "Academic", desc: "Transcript / performance" }, { key: "character", max: 25, label: "Character", desc: "Recommender ratings" }, { key: "essay", max: 30, label: "Student Essay", desc: "Depth, voice, maturity" }, { key: "need", max: 20, label: "Financial Need", desc: "Demonstrated necessity" }];
+    }
 
-// ── SEND RECOMMENDER LINK FORM ──
-function showRecForm(studentId) {
-  const wrap = document.getElementById("recFormWrap");
-  wrap.classList.remove("hidden");
-  wrap.innerHTML = `
-    <div class="flex items-start justify-between mb-3">
-      <div>
-        <h4 class="font-bold text-base" style="color:var(--clr-forest);">Invite Additional Recommender</h4>
-        <p class="text-xs text-gray-600 mt-1">A secure, single-use link will be emailed directly to each recommender.</p>
-      </div>
-    </div>
-    <div id="recRows"></div>
-    <button onclick="addRecRow()" class="btn-ghost text-xs mt-2">+ Add another</button>
-    <div class="mt-4 flex justify-end gap-2 pt-3 border-t border-amber-200">
-      <button onclick="document.getElementById('recFormWrap').classList.add('hidden')" class="btn-ghost text-sm">Cancel</button>
-      <button onclick="submitRecs('${studentId}')" class="btn-primary text-sm">✉ Send Secure Links</button>
-    </div>`;
-  addRecRow();
-  wrap.scrollIntoView({ behavior:"smooth", block:"nearest" });
-}
+    function updateTotal() {
+        let t = 0;
+        document.querySelectorAll("[data-score]").forEach(i => t += Number(i.value || 0));
+        document.getElementById("scoreTotal").textContent = t;
+    }
 
-function addRecRow(prefill) {
-  const r = document.createElement("div");
-  r.className = "grid grid-cols-1 md:grid-cols-3 gap-2 mb-2";
-  const v = prefill || {};
-  r.innerHTML = `<input class="form-input text-sm" placeholder="Teacher full name" data-rec="name" value="${escapeHtml(v.name||'')}">
-    <input class="form-input text-sm" placeholder="teacher@school.edu" type="email" data-rec="email" value="${escapeHtml(v.email||'')}">
-    <input class="form-input text-sm" placeholder="School / Organization" data-rec="school" value="${escapeHtml(v.school||'')}">`;
-  document.getElementById("recRows").appendChild(r);
-}
+    function applySuggestion(val) {
+        const input = document.querySelector('[data-score="character"]');
+        if (!input) return;
+        input.value = val;
+        updateTotal();
+        input.focus();
+    }
 
-async function submitRecs(studentId) {
-  const rows = document.getElementById("recRows").querySelectorAll("div");
-  const recommenders = [];
-  rows.forEach(row => {
-    const rec = {};
-    row.querySelectorAll("[data-rec]").forEach(i => rec[i.dataset.rec] = i.value.trim());
-    if (rec.email) recommenders.push(rec);
-  });
-  if (!recommenders.length) { alert("Add at least one recommender."); return; }
-  const r = await callBackend({
-    action:"sendRecommenderLinks", token: idToken,
-    studentId, recommenders, recommenderUrl: RECOMMENDER_URL
-  });
-  if (r.status !== "success") { alert(r.message || "Failed."); return; }
-  alert("Sent " + r.results.filter(x=>x.status==="sent").length + " invitation(s).");
-  await loadApplications(); openModal(studentId);
-}
+    function viewRecFromApp(studentId, teacherEmail) {
+        const a = applications.find(x => String(x.studentId) === String(studentId));
+        if (!a) return;
+        const r = (a.recommenders || []).find(x => (x.teacherEmail || "").toLowerCase() === String(teacherEmail).toLowerCase());
+        if (!r) return;
+        
+        const auto = scoreRecommendation(a.track, r.responses || {});
+        const resp = r.responses || {};
+        const pretty = k => k.replace(/^t_/, "Trait: ").replace(/^r_/, "").replace(/^ta_/, "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
-function closeModal() { document.getElementById("modal").classList.add("hidden"); }
+        const rowsHtml = Object.keys(resp).filter(k => !k.startsWith("_")).map(k => {
+            let pts = "";
+            if (auto) {
+                const f = auto.breakdown.find(b => b.key === k);
+                if (f) pts = f.pts === "—" ? `<span class="text-stone-400 text-[10px] uppercase">No Basis</span>` : `<span class="font-bold text-[var(--clr-forest)] bg-stone-100 px-2 py-0.5 rounded">${f.pts}/${f.max}</span>`;
+            }
+            return `
+            <div class="py-3 border-b border-stone-100 flex justify-between gap-4">
+                <div class="flex-1">
+                    <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wide mb-0.5">${escapeHtml(pretty(k))}</p>
+                    <p class="text-sm font-medium text-stone-800">${escapeHtml(String(resp[k]))}</p>
+                </div>
+                <div class="flex-shrink-0 pt-3">${pts}</div>
+            </div>`;
+        }).join("");
 
-function escapeHtml(s) {
-  return String(s??"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-</script>
+        let header = "";
+        if (auto) {
+            header = `
+            <div class="bg-gradient-to-r from-[var(--clr-gold-light)] to-white border border-[#e8dfc3] rounded-xl p-4 mb-6 flex justify-between items-center shadow-sm">
+                <div>
+                    <h4 class="font-bold text-[var(--clr-forest)] text-sm">Automated Rubric Score</h4>
+                    <p class="text-xs text-stone-500 mt-0.5 font-medium">${auto.scored} answered${auto.skipped ? ` • ${auto.skipped} skipped` : ""}</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-serif font-bold text-[var(--clr-forest)]">${auto.pct}<span class="text-sm text-stone-400">/100</span></div>
+                </div>
+            </div>`;
+        }
+
+        document.getElementById("modalLeftCol").innerHTML = `
+            <button onclick='openModal(${JSON.stringify(studentId)})' class="mb-4 text-xs font-bold text-stone-500 hover:text-[var(--clr-forest)] flex items-center gap-1 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Back to Application View
+            </button>
+            <div class="bg-white rounded-xl p-6 border border-stone-200 shadow-sm">
+                <h3 class="font-serif text-lg text-[var(--clr-forest)] mb-1">Recommendation Responses</h3>
+                <p class="text-sm text-stone-500 mb-6 font-medium">Submitted by ${escapeHtml(r.teacherName)}</p>
+                ${header}
+                <div class="space-y-1">${rowsHtml || '<p class="text-stone-500 text-sm">No recorded responses.</p>'}</div>
+            </div>`;
+    }
+
+    async function saveScore(studentId, studentName, track) {
+        const payload = { action: "scoreApplication", token: idToken, studentId, studentName, track, recommendation: document.getElementById("rec_recommendation").value, notes: document.getElementById("rec_notes").value };
+        document.querySelectorAll("[data-score]").forEach(i => payload[i.dataset.score] = Number(i.value || 0));
+        
+        const btn = event.target;
+        btn.textContent = "Saving...";
+        btn.disabled = true;
+
+        const r = await callBackend(payload);
+        if (r.status === "success") {
+            await loadApplications();
+            openModal(studentId);
+        } else {
+            alert(r.message || "Failed.");
+            btn.textContent = "Submit Evaluation";
+            btn.disabled = false;
+        }
+    }
+
+    function showRecForm(studentId) {
+        const wrap = document.getElementById("recFormWrap");
+        wrap.classList.remove("hidden");
+        wrap.innerHTML = `
+        <div class="mb-4">
+            <h4 class="font-serif text-[var(--clr-forest)] text-lg">Manually Invite Recommender</h4>
+            <p class="text-xs text-stone-500 mt-0.5 font-medium">A single-use, secure link will be emailed immediately.</p>
+        </div>
+        <div id="recRows" class="space-y-2"></div>
+        <button onclick="addRecRow()" class="text-[10px] font-bold uppercase tracking-wider text-[var(--clr-sage)] hover:text-[var(--clr-forest)] mt-3 mb-4">+ Add Row</button>
+        <div class="flex justify-end gap-3 pt-4 border-t border-[var(--clr-gold)]/20">
+            <button onclick="document.getElementById('recFormWrap').classList.add('hidden')" class="btn-ghost text-sm">Cancel</button>
+            <button onclick="submitRecs('${studentId}')" class="btn-primary text-sm shadow-md shadow-green-900/10">Send Secure Links</button>
+        </div>`;
+        addRecRow();
+    }
+
+    function addRecRow() {
+        const r = document.createElement("div");
+        r.className = "grid grid-cols-1 md:grid-cols-3 gap-3";
+        r.innerHTML = `
+            <input class="form-input text-sm shadow-none" placeholder="Teacher Name" data-rec="name">
+            <input class="form-input text-sm shadow-none" placeholder="Email Address" type="email" data-rec="email">
+            <input class="form-input text-sm shadow-none" placeholder="Current School" data-rec="school">`;
+        document.getElementById("recRows").appendChild(r);
+    }
+
+    async function submitRecs(studentId) {
+        const rows = document.getElementById("recRows").querySelectorAll("div.grid");
+        const recommenders = [];
+        rows.forEach(row => {
+            const rec = {};
+            row.querySelectorAll("[data-rec]").forEach(i => rec[i.dataset.rec] = i.value.trim());
+            if (rec.email) recommenders.push(rec);
+        });
+        if (!recommenders.length) return alert("Add at least one valid email.");
+        
+        const r = await callBackend({ action: "sendRecommenderLinks", token: idToken, studentId, recommenders, recommenderUrl: RECOMMENDER_URL });
+        if (r.status !== "success") return alert(r.message || "Failed.");
+        
+        await loadApplications();
+        openModal(studentId);
+    }
+
+    function escapeHtml(s) {
+        return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+    </script>
 </body>
 </html>
