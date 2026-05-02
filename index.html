@@ -186,6 +186,7 @@
     <div class="max-w-[1400px] mx-auto px-8 flex">
       <div class="tab active" onclick="switchTab('apps',this)">Applications</div>
       <div class="tab" onclick="switchTab('recs',this)">Recommendations</div>
+      <div class="tab" onclick="switchTab('accept',this)">Acceptances</div>
       <div class="tab" onclick="switchTab('analytics',this)">Analytics</div>
     </div>
   </header>
@@ -233,6 +234,11 @@
       <div id="recsTable" class="card overflow-hidden"></div>
     </div>
 
+    <!-- Acceptances tab -->
+    <div id="tabAccept" class="hidden">
+      <div id="acceptTable" class="card overflow-hidden"></div>
+    </div>
+
     <!-- Analytics tab -->
     <div id="tabAnalytics" class="hidden">
       <div id="analyticsPane"></div>
@@ -264,6 +270,7 @@
 const GOOGLE_CLIENT_ID = "14216824305-v19ecsmrhk1muaglrlhjceqjk5oeqr4n.apps.googleusercontent.com";
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzZ9LBchK0uKXZbrp_F-DuGddmIlXy1nVxjmjDVDTNZr8NXeGhD-AdIdkXeCO7e6kDNvA/exec";
 const RECOMMENDER_URL = "https://recommend.svaportal.com";
+const ACCEPTANCE_URL  = "https://accept.svaportal.com";
 let idToken = null;
 let currentEmail = null;
 let applications = [];
@@ -314,6 +321,7 @@ async function loadApplications() {
   const r = await callBackend({ action:"listApplications", token: idToken });
   if (r.status !== "success") { showToast(r.message, true); return; }
   applications = r.applications || [];
+  _acceptanceCache = null;
   renderStats();
   renderApps();
 }
@@ -471,9 +479,45 @@ function switchTab(which, el) {
   el.classList.add("active");
   document.getElementById("tabApps").classList.toggle("hidden", which !== "apps");
   document.getElementById("tabRecs").classList.toggle("hidden", which !== "recs");
+  document.getElementById("tabAccept").classList.toggle("hidden", which !== "accept");
   document.getElementById("tabAnalytics").classList.toggle("hidden", which !== "analytics");
   if (which === "recs") loadRecs();
+  if (which === "accept") loadAcceptTab();
   if (which === "analytics") renderAnalytics();
+}
+
+async function loadAcceptTab() {
+  const items = await loadAcceptances(true);
+  if (!items.length) {
+    document.getElementById("acceptTable").innerHTML = `
+      <div class="py-16 text-center">
+        <div style="font-size:32px;opacity:.3;">🎓</div>
+        <p class="text-sm text-[var(--clr-ink-muted)] mt-2">No acceptance links sent yet.</p>
+        <p class="text-xs text-[var(--clr-ink-muted)] mt-1">Open an application and click <em>Send acceptance link</em>.</p>
+      </div>`;
+    return;
+  }
+  const rows = items.map(x => `<tr onclick='openModal(${JSON.stringify(x.studentId)})'>
+    <td>
+      <div class="font-medium">${escapeHtml(x.studentName||"")}</div>
+      <div class="text-xs text-[var(--clr-ink-muted)] num">${escapeHtml(x.studentId||"")}</div>
+    </td>
+    <td>${trackChip(x.track)}</td>
+    <td class="text-xs text-[var(--clr-ink-soft)]">${escapeHtml(x.parentEmail||"")}</td>
+    <td class="num text-sm">${x.declaredIncome ? "$" + Number(x.declaredIncome).toLocaleString() : "—"}</td>
+    <td class="num">${x.awardPercent ? `<span class="serif text-base font-semibold" style="color:var(--clr-forest);">${x.awardPercent}%</span>` : "—"}</td>
+    <td class="text-xs num">${x.affidavitSignedOn ? new Date(x.affidavitSignedOn).toLocaleDateString() : "—"}</td>
+    <td class="text-xs num">${x.planningSignedOn ? new Date(x.planningSignedOn).toLocaleDateString() : "—"}</td>
+    <td><span class="chip ${x.status==='Completed'?'chip-done':'chip-sent'}"><span class="chip-dot" style="background:currentColor;opacity:.6;"></span>${escapeHtml(x.status||"")}</span></td>
+    <td>
+      ${x.affidavitFile ? `<a href="${escapeHtml(x.affidavitFile)}" target="_blank" onclick="event.stopPropagation()" class="btn-ghost">Affidavit</a> ` : ""}
+      ${x.planningFile ? `<a href="${escapeHtml(x.planningFile)}" target="_blank" onclick="event.stopPropagation()" class="btn-ghost">Partnership</a>` : ""}
+    </td>
+  </tr>`).join("");
+  document.getElementById("acceptTable").innerHTML = `<table class="refined">
+    <thead><tr><th>Student</th><th>Track</th><th>Parent</th><th>Declared Income</th><th>Award</th><th>Affidavit</th><th>Partnership</th><th>Status</th><th>Files</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
 }
 
 function renderAnalytics() {
@@ -706,7 +750,17 @@ function openModal(studentId) {
 
     <div class="section-label mb-3">Committee Evaluation</div>
     ${scoreFormHtml(a, myScore)}
+
+    <div class="mt-8 mb-3 flex items-center justify-between">
+      <div class="section-label">Acceptance & Affidavit</div>
+      <button onclick='sendAcceptance(${JSON.stringify(a.studentId)})' class="btn-gold">Send acceptance link</button>
+    </div>
+    <div id="acceptancePane_${a.studentId}" class="card p-5">
+      <p class="text-sm text-[var(--clr-ink-soft)] leading-relaxed">Once the committee finalizes the award, send the parent a secure tokenized link. They will declare household income, sign the income affidavit, and complete the Family Partnership Agreement. All signed documents are saved to the student's Drive folder, and a confirmation email is sent automatically.</p>
+      <div id="acceptanceStatus_${a.studentId}" class="mt-3"></div>
+    </div>
   `;
+  loadAcceptanceStatus(a.studentId);
 
   document.getElementById("panelBackdrop").classList.add("open");
   document.getElementById("modal").classList.add("open");
@@ -722,6 +776,49 @@ async function inviteNominated(studentId, teacher) {
   const sent = (r.results||[]).filter(x=>x.status==="sent").length;
   showToast(sent ? "Invitation sent to " + rec.email : "Failed to send.", !sent);
   await loadApplications(); openModal(studentId);
+}
+
+// ── ACCEPTANCE / AFFIDAVIT ──
+let _acceptanceCache = null;
+async function loadAcceptances(force) {
+  if (_acceptanceCache && !force) return _acceptanceCache;
+  const r = await callBackend({ action:"listAcceptances", token: idToken });
+  _acceptanceCache = r.status === "success" ? r.items : [];
+  return _acceptanceCache;
+}
+
+async function loadAcceptanceStatus(studentId) {
+  const items = await loadAcceptances();
+  const matches = items.filter(x => String(x.studentId) === String(studentId));
+  const el = document.getElementById("acceptanceStatus_" + studentId);
+  if (!el) return;
+  if (!matches.length) { el.innerHTML = `<p class="text-xs text-[var(--clr-ink-muted)] italic mt-2">No acceptance link sent yet.</p>`; return; }
+  el.innerHTML = matches.map(x => `
+    <div class="rec-row mt-2">
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-medium" style="color:var(--clr-ink);">${escapeHtml(x.parentEmail||"")}</div>
+        <div class="text-xs text-[var(--clr-ink-muted)] mt-0.5">Sent ${x.sentOn ? new Date(x.sentOn).toLocaleDateString() : "—"}</div>
+      </div>
+      <div class="flex items-center gap-2">
+        ${x.declaredIncome ? `<span class="chip chip-done">$${Number(x.declaredIncome).toLocaleString()}</span>` : ""}
+        ${x.awardPercent ? `<span class="chip chip-done">${x.awardPercent}% award</span>` : ""}
+        <span class="chip ${x.status==='Completed'?'chip-done':'chip-sent'}"><span class="chip-dot" style="background:currentColor;opacity:.6;"></span>${escapeHtml(x.status||"")}</span>
+        ${x.affidavitFile ? `<a href="${escapeHtml(x.affidavitFile)}" target="_blank" class="btn-ghost text-xs">Affidavit</a>` : ""}
+        ${x.planningFile ? `<a href="${escapeHtml(x.planningFile)}" target="_blank" class="btn-ghost text-xs">Partnership</a>` : ""}
+      </div>
+    </div>
+  `).join("");
+}
+
+async function sendAcceptance(studentId) {
+  const a = applications.find(x => String(x.studentId) === String(studentId));
+  if (!a) return;
+  if (!confirm(`Send the acceptance & affidavit link to ${a.parentEmail}?\n\nThe parent will declare household income, sign the affidavit, and complete the Family Partnership Agreement.`)) return;
+  const r = await callBackend({ action:"sendAcceptanceLink", token: idToken, studentId, acceptanceUrl: ACCEPTANCE_URL });
+  if (r.status !== "success") { showToast(r.message || "Failed.", true); return; }
+  showToast("Acceptance link sent to " + a.parentEmail);
+  await loadAcceptances(true);
+  loadAcceptanceStatus(studentId);
 }
 
 async function inviteAllNominated(studentId) {
